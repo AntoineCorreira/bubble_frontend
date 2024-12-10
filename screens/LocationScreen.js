@@ -5,6 +5,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 
+//Commentaire
 // Fonction pour calculer la distance entre deux points GPS
 // Utilise la formule de Haversine pour déterminer la distance entre deux coordonnées
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -47,7 +48,7 @@ const LocationScreen = ({ navigation }) => {
             'Lily Script One': require('../assets/fonts/LilyScriptOne-Regular.ttf'),
         });
 
-        fetch('http://192.168.1.154:3000/establishments')
+        fetch('http://192.168.1.154:3000/establishments/all')
         .then(response => response.json())
         .then(data => {
             // Stocker les établissements dans l'état `establishmentsData`
