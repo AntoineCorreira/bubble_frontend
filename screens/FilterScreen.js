@@ -1,13 +1,14 @@
-// Importation des modules nécessaires depuis React et React Native
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ImageBackground, TextInput, Modal, ScrollView, StyleSheet } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { CheckBox } from 'react-native-elements';
+import { useDispatch } from 'react-redux';
+import { setSearchCriteria } from '../reducers/searchCriteria'; // Importer setSearchCriteria
 
 // Définition du composant FilterScreen avec une image d'arrière-plan
-const FilterScreen = ({ background = require('../assets/background.png') }) => {
+const FilterScreen = ({ navigation, background = require('../assets/background.png') }) => {
   // Déclaration des états avec useState
   const [selectedMenu, setSelectedMenu] = useState('Ponctuelle'); // Menu sélectionné (Ponctuelle ou Régulier)
   const [search, setSearch] = useState(''); // Texte de recherche
@@ -29,203 +30,215 @@ const FilterScreen = ({ background = require('../assets/background.png') }) => {
   ]);
   const [childrenPlaceholder, setChildrenPlaceholder] = useState('Nom de votre enfant'); // Placeholder pour le champ des enfants
 
+  const dispatch = useDispatch(); // Utiliser useDispatch pour dispatcher les actions
 
   // Mise à jour du placeholder en fonction des enfants sélectionnés
-useEffect(() => {
-  if (selectedChildren.length === 0) {
-    setChildrenPlaceholder('Nom de votre enfant'); // Si aucun enfant n'est sélectionné, afficher le placeholder par défaut
-  } else {
-    const selectedNames = selectedChildren.map(child => child.name).join(', '); // Récupérer les noms des enfants sélectionnés
-    if (selectedNames.length > 20) {
-      setChildrenPlaceholder(`${selectedNames.substring(0, 17)}...`); // Si les noms sont trop longs, les tronquer
+  useEffect(() => {
+    if (selectedChildren.length === 0) {
+      setChildrenPlaceholder('Nom de votre enfant'); // Si aucun enfant n'est sélectionné, afficher le placeholder par défaut
     } else {
-      setChildrenPlaceholder(selectedNames); // Sinon, afficher les noms complets
-    }
-  }
-}, [selectedChildren]); // Exécuter ce code à chaque fois que la liste des enfants sélectionnés change
-
-// Fonction pour basculer la visibilité de la modale des types de garde
-const toggleModal = () => {
-  setModalVisible(!modalVisible);
-};
-
-// Fonction pour basculer la visibilité de la modale des enfants
-const toggleChildrenModal = () => {
-  setChildrenModalVisible(!childrenModalVisible);
-};
-
-// Fonction pour gérer les changements de sélection des enfants
-const handleCheckboxChange = (child) => {
-  setSelectedChildren(prevSelectedChildren => {
-    if (prevSelectedChildren.some(selected => selected.id === child.id)) {
-      // Si l'enfant est déjà sélectionné, le retirer de la liste
-      return prevSelectedChildren.filter(selected => selected.id !== child.id);
-    } else {
-      // Sinon, ajouter l'enfant à la liste
-      return [...prevSelectedChildren, child];
-    }
-  });
-};
-
-// Fonction pour gérer le changement de date sélectionnée
-const handleDateChange = (day) => {
-  if (selectedStartDate && !selectedEndDate) {
-    setSelectedEndDate(day.dateString); // Si une date de début est déjà sélectionnée, définir la date de fin
-  } else {
-    setSelectedStartDate(day.dateString); // Sinon, définir la date de début
-    setSelectedEndDate(''); // Réinitialiser la date de fin
-  }
-};
-
-// Fonction pour gérer le changement d'heure de début
-const handleStartTimeChange = (event, selectedDate) => {
-  const currentDate = selectedDate || startTime;
-  setShowStartTimePicker(false); // Masquer le sélecteur d'heure de début
-  setStartTime(currentDate); // Définir l'heure de début sélectionnée
-};
-
-// Fonction pour gérer le changement d'heure de fin
-const handleEndTimeChange = (event, selectedDate) => {
-  const currentDate = selectedDate || endTime;
-  setShowEndTimePicker(false); // Masquer le sélecteur d'heure de fin
-  setEndTime(currentDate); // Définir l'heure de fin sélectionnée
-};
-
-// Fonction pour obtenir les dates marquées sur le calendrier
-const getMarkedDates = () => {
-  let markedDates = {};
-  if (selectedStartDate) {
-    markedDates[selectedStartDate] = {selected: true, startingDay: true, color: 'green'}; // Marquer la date de début en vert
-  }
-  if (selectedEndDate) {
-    markedDates[selectedEndDate] = {selected: true, endingDay: true, color: 'green'}; // Marquer la date de fin en vert
-    let start = new Date(selectedStartDate); // Débuter la boucle de dates à partir de la date de début sélectionnée
-    let end = new Date(selectedEndDate); // Fin de la boucle de dates à la date de fin sélectionnée
-    while (start < end) {
-      start.setDate(start.getDate() + 1); // Avancer d'un jour
-      const dateString = start.toISOString().split('T')[0]; // Convertir la date en chaîne ISO et récupérer la partie date
-      if (dateString !== selectedEndDate) {
-        markedDates[dateString] = {selected: true, color: 'lightgreen'}; // Marquer les dates intermédiaires en vert clair
+      const selectedNames = selectedChildren.map(child => child.name).join(', '); // Récupérer les noms des enfants sélectionnés
+      if (selectedNames.length > 20) {
+        setChildrenPlaceholder(`${selectedNames.substring(0, 17)}...`); // Si les noms sont trop longs, les tronquer
+      } else {
+        setChildrenPlaceholder(selectedNames); // Sinon, afficher les noms complets
       }
     }
-  }
-  return markedDates; // Retourner les dates marquées
-};
+  }, [selectedChildren]); // Exécuter ce code à chaque fois que la liste des enfants sélectionnés change
 
-// Fonction pour réinitialiser tous les filtres et les états sélectionnés
-const handleReset = () => {
-  setSelectedTypes([]); // Réinitialiser les types de garde sélectionnés
-  setSelectedStartDate(''); // Réinitialiser la date de début
-  setSelectedEndDate(''); // Réinitialiser la date de fin
-  setStartTime(new Date()); // Réinitialiser l'heure de début
-  setEndTime(new Date()); // Réinitialiser l'heure de fin
-  setSelectedChildren([]); // Réinitialiser les enfants sélectionnés
-  setSearch(''); // Réinitialiser le texte de recherche
-};
+  // Fonction pour basculer la visibilité de la modale des types de garde
+  const toggleModal = () => {
+    setModalVisible(!modalVisible);
+  };
 
-// Liste des types de garde disponibles
-const typesOfCare = [
-  'Crèches', 
-  'Assistant(e) maternelle', 
-  'Babysitter', 
-  'Garde à domicile', 
-];
+  // Fonction pour basculer la visibilité de la modale des enfants
+  const toggleChildrenModal = () => {
+    setChildrenModalVisible(!childrenModalVisible);
+  };
 
-return (
-  <ImageBackground source={background} style={styles.background}>
-    <View style={styles.contentContainer}>
-      <View style={styles.menuContainer}>
-        <TouchableOpacity
-          style={styles.menuButton}
-          onPress={() => setSelectedMenu('Ponctuelle')}
-        >
-          <Text style={styles.menuText}>Ponctuelle</Text>
-          {selectedMenu === 'Ponctuelle' && <View style={styles.menuIndicator} />}
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.menuButton}
-          onPress={() => setSelectedMenu('Régulier')}
-        >
-          <Text style={styles.menuText}>Régulier</Text>
-          {selectedMenu === 'Régulier' && <View style={styles.menuIndicator} />}
-        </TouchableOpacity>
-      </View>
+  // Fonction pour gérer les changements de sélection des enfants
+  const handleCheckboxChange = (child) => {
+    setSelectedChildren(prevSelectedChildren => {
+      if (prevSelectedChildren.some(selected => selected.id === child.id)) {
+        // Si l'enfant est déjà sélectionné, le retirer de la liste
+        return prevSelectedChildren.filter(selected => selected.id !== child.id);
+      } else {
+        // Sinon, ajouter l'enfant à la liste
+        return [...prevSelectedChildren, child];
+      }
+    });
+  };
 
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Localisation"
-          placeholderTextColor="#ccc"
-          value={search}
-          onChangeText={setSearch}
-        />
-        <FontAwesome name="search" style={styles.searchIcon} />
-        <TouchableOpacity onPress={toggleModal}>
-          <FontAwesome name="sliders" style={styles.sliderIcon} />
-        </TouchableOpacity>
-      </View>
+  // Fonction pour gérer le changement de date sélectionnée
+  const handleDateChange = (day) => {
+    if (selectedStartDate && !selectedEndDate) {
+      setSelectedEndDate(day.dateString); // Si une date de début est déjà sélectionnée, définir la date de fin
+    } else {
+      setSelectedStartDate(day.dateString); // Sinon, définir la date de début
+      setSelectedEndDate(''); // Réinitialiser la date de fin
+    }
+  };
 
-      <View style={styles.calendarContainer}>
-        <Calendar
-          onDayPress={handleDateChange}
-          markingType={'period'}
-          markedDates={getMarkedDates()}
-        />
-      </View>
+  // Fonction pour gérer le changement d'heure de début
+  const handleStartTimeChange = (event, selectedDate) => {
+    const currentDate = selectedDate || startTime;
+    setShowStartTimePicker(false); // Masquer le sélecteur d'heure de début
+    setStartTime(currentDate); // Définir l'heure de début sélectionnée
+  };
 
-      // Conteneur pour les sélecteurs d'heure (début et fin)
-<View style={styles.timePickerContainer}>
-  // Bouton pour afficher le sélecteur d'heure de début
-  <TouchableOpacity style={styles.timeButton} onPress={() => setShowStartTimePicker(true)}>
-    <Text style={styles.timeButtonText}>Heure de début: {startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
-  </TouchableOpacity>
-  // Afficher le sélecteur d'heure de début si showStartTimePicker est vrai
-  {showStartTimePicker && (
-    <DateTimePicker
-      value={startTime}
-      mode="time"
-      display="default"
-      onChange={handleStartTimeChange}
-      is24Hour={true}
-    />
-  )}
+  // Fonction pour gérer le changement d'heure de fin
+  const handleEndTimeChange = (event, selectedDate) => {
+    const currentDate = selectedDate || endTime;
+    setShowEndTimePicker(false); // Masquer le sélecteur d'heure de fin
+    setEndTime(currentDate); // Définir l'heure de fin sélectionnée
+  };
 
-  // Bouton pour afficher le sélecteur d'heure de fin
-  <TouchableOpacity style={styles.timeButton} onPress={() => setShowEndTimePicker(true)}>
-    <Text style={styles.timeButtonText}>Heure de fin: {endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
-  </TouchableOpacity>
-  // Afficher le sélecteur d'heure de fin si showEndTimePicker est vrai
-  {showEndTimePicker && (
-    <DateTimePicker
-      value={endTime}
-      mode="time"
-      display="default"
-      onChange={handleEndTimeChange}
-      is24Hour={true}
-    />
-  )}
-</View>
+  // Fonction pour obtenir les dates marquées sur le calendrier
+  const getMarkedDates = () => {
+    let markedDates = {};
+    if (selectedStartDate) {
+      markedDates[selectedStartDate] = {selected: true, startingDay: true, color: 'green'}; // Marquer la date de début en vert
+    }
+    if (selectedEndDate) {
+      markedDates[selectedEndDate] = {selected: true, endingDay: true, color: 'green'}; // Marquer la date de fin en vert
+      let start = new Date(selectedStartDate); // Débuter la boucle de dates à partir de la date de début sélectionnée
+      let end = new Date(selectedEndDate); // Fin de la boucle de dates à la date de fin sélectionnée
+      while (start < end) {
+        start.setDate(start.getDate() + 1); // Avancer d'un jour
+        const dateString = start.toISOString().split('T')[0]; // Convertir la date en chaîne ISO et récupérer la partie date
+        if (dateString !== selectedEndDate) {
+          markedDates[dateString] = {selected: true, color: 'lightgreen'}; // Marquer les dates intermédiaires en vert clair
+        }
+      }
+    }
+    return markedDates; // Retourner les dates marquées
+  };
 
-// Conteneur pour le sélecteur des enfants
-<View style={styles.pickerContainer}>
-  <TouchableOpacity style={styles.pickerButton} onPress={toggleChildrenModal}>
-    <Text style={styles.pickerButtonText}>{childrenPlaceholder}</Text>
-    <FontAwesome name="caret-down" style={styles.pickerIcon} />
-  </TouchableOpacity>
-</View>
+  // Fonction pour réinitialiser tous les filtres et les états sélectionnés
+  const handleReset = () => {
+    setSelectedTypes([]); // Réinitialiser les types de garde sélectionnés
+    setSelectedStartDate(''); // Réinitialiser la date de début
+    setSelectedEndDate(''); // Réinitialiser la date de fin
+    setStartTime(new Date()); // Réinitialiser l'heure de début
+    setEndTime(new Date()); // Réinitialiser l'heure de fin
+    setSelectedChildren([]); // Réinitialiser les enfants sélectionnés
+    setSearch(''); // Réinitialiser le texte de recherche
+  };
 
-// Conteneur pour les boutons Réinitialiser et Valider
-<View style={styles.buttonContainer}>
-  <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
-    <Text style={styles.resetButtonText}>Réinitialiser</Text>
-  </TouchableOpacity>
-  <TouchableOpacity style={styles.submitButton}>
-    <Text style={styles.submitButtonText}>Valider</Text>
-  </TouchableOpacity>
-</View>
+  // Liste des types de garde disponibles
+  const typesOfCare = [
+    'Crèches', 
+    'MAM', 
+    'Babysitter', 
+    'Garde à domicile', 
+  ];
 
-// Première modale : Sélection des enfants
-<Modal
+  // Fonction pour soumettre les filtres et naviguer de retour à LocationScreen
+  const handleSubmit = () => {
+    // Mettre à jour les critères de recherche dans Redux
+    dispatch(setSearchCriteria({
+      location: search,
+      period: selectedStartDate + ' - ' + selectedEndDate,
+      type: selectedTypes.join(', '),
+    }));
+    // Naviguer de retour à LocationScreen
+    navigation.navigate('Search');
+  };
+
+
+
+  return (
+    <ImageBackground source={background} style={styles.background}>
+      <View style={styles.contentContainer}>
+        <View style={styles.menuContainer}>
+          <TouchableOpacity
+            style={styles.menuButton}
+            onPress={() => setSelectedMenu('Ponctuelle')}
+          >
+            <Text style={styles.menuText}>Ponctuelle</Text>
+            {selectedMenu === 'Ponctuelle' && <View style={styles.menuIndicator} />}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuButton}
+            onPress={() => setSelectedMenu('Régulier')}
+          >
+            <Text style={styles.menuText}>Régulier</Text>
+            {selectedMenu === 'Régulier' && <View style={styles.menuIndicator} />}
+          </TouchableOpacity>
+        </View>
+  
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Localisation"
+            placeholderTextColor="#ccc"
+            value={search}
+            onChangeText={setSearch}
+          />
+          <FontAwesome name="search" style={styles.searchIcon} />
+          <TouchableOpacity onPress={toggleModal}>
+            <FontAwesome name="sliders" style={styles.sliderIcon} />
+          </TouchableOpacity>
+        </View>
+  
+        <View style={styles.calendarContainer}>
+          <Calendar
+            onDayPress={handleDateChange}
+            markingType={'period'}
+            markedDates={getMarkedDates()}
+          />
+        </View>
+  
+        <View style={styles.timePickerContainer}>
+          <TouchableOpacity style={styles.timeButton} onPress={() => setShowStartTimePicker(true)}>
+            <Text style={styles.timeButtonText}>Heure de début: {startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+          </TouchableOpacity>
+        
+          {showStartTimePicker && (
+            <DateTimePicker
+              value={startTime}
+              mode="time"
+              display="default"
+              onChange={handleStartTimeChange}
+              is24Hour={true}
+            />
+          )}
+  
+          <TouchableOpacity style={styles.timeButton} onPress={() => setShowEndTimePicker(true)}>
+            <Text style={styles.timeButtonText}>Heure de fin: {endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+          </TouchableOpacity>
+  
+          {showEndTimePicker && (
+            <DateTimePicker
+              value={endTime}
+              mode="time"
+              display="default"
+              onChange={handleEndTimeChange}
+              is24Hour={true}
+            />
+          )}
+        </View>
+  
+        <View style={styles.pickerContainer}>
+          <TouchableOpacity style={styles.pickerButton} onPress={toggleChildrenModal}>
+            <Text style={styles.pickerButtonText}>{childrenPlaceholder}</Text>
+            <FontAwesome name="caret-down" style={styles.pickerIcon} />
+          </TouchableOpacity>
+        </View>
+  
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
+            <Text style={styles.resetButtonText}>Réinitialiser</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+            <Text style={styles.submitButtonText}>Valider</Text>
+          </TouchableOpacity>
+        </View>
+  
+  
+  
+  
+  <Modal
   animationType="slide"
   transparent={true}
   visible={childrenModalVisible}
@@ -250,7 +263,6 @@ return (
   </View>
 </Modal>
 
-// Deuxième modale : Sélection des types de garde
 <Modal
   animationType="slide"
   transparent={true}
@@ -282,10 +294,11 @@ return (
   </View>
 </Modal>
 
-      </View>
-    </ImageBackground>
-  );
+    </View>
+  </ImageBackground>
+);
 };
+
 
 const styles = StyleSheet.create({
   background: {
