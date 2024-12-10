@@ -133,7 +133,7 @@ const LocationScreen = ({ navigation }) => {
                     />
                     <FontAwesome name="search" size={20} color="#999999" style={styles.icon} />
                 </View>
-                {/* Boutons pour basculer entre la vue liste et carte */}
+               
                 <View style={styles.button}>
                     <TouchableOpacity
                         style={[styles.buttonList, viewMode === 'list' ? styles.activeButton : styles.inactiveButton]}
@@ -153,10 +153,10 @@ const LocationScreen = ({ navigation }) => {
                     </TouchableOpacity>
                 </View>
 
-                {/* Affichage conditionnel de la vue en fonction du mode sélectionné */}
+                
                 {viewMode === 'list' ? (
                     <ScrollView contentContainerStyle={styles.establishmentContainer}>
-                        {establishmentList} {/* Liste des établissements */}
+                        {establishmentList} 
                     </ScrollView>
                 ) : (
                     <View style={styles.mapContainer}>
@@ -169,9 +169,9 @@ const LocationScreen = ({ navigation }) => {
                                 longitudeDelta: 0.1,
                             } : { latitude: 46.603354, longitude: 1.888334, latitudeDelta: 10, longitudeDelta: 10 }}
                         >
-                            {mapMarkers} {/* Marqueurs sur la carte */}
+                            
                         </MapView>
-                        {/* Informations sur l'établissement sélectionné */}
+                        
                         {selectedEstablishment && (
                             <View style={styles.selectedEstablishment}>
                                 <Image
@@ -265,14 +265,10 @@ const styles = StyleSheet.create({
     buttonTextInactive: {
         color: '#FFFFFF',
     },
-    icon: {
-        position: 'absolute',
-        right: 10,
-    },
     input: {
         flex: 1,
         height: 40,
-        paddingRight: 30,
+        paddingRight: 30, // Ajustez ceci pour s'assurer qu'il y a de l'espace pour les deux icônes
     },
     establishmentContainer: {
         paddingVertical: 10,

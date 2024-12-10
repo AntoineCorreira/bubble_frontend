@@ -7,6 +7,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import user from './reducers/user';
+import searchCriteria from './reducers/searchCriteria'; // Importer searchCriteria
 
 import LoginScreen from './screens/LoginScreen';
 import CoordonneeScreen from './screens/CoordonneeScreen';
@@ -18,7 +19,10 @@ import ProfilScreen from './screens/ProfilScreen';
 import ReservationScreen from './screens/ReservationScreen';
 
 const store = configureStore({
-  reducer: { user },
+  reducer: { 
+    user,
+    searchCriteria, // Ajouter le réducteur ici
+  },
 });
 
 const Stack = createNativeStackNavigator();
