@@ -169,7 +169,7 @@ const LocationScreen = ({ navigation }) => {
                                 longitudeDelta: 0.1,
                             } : { latitude: 46.603354, longitude: 1.888334, latitudeDelta: 10, longitudeDelta: 10 }}
                         >
-                            
+                            {mapMarkers}
                         </MapView>
                         
                         {selectedEstablishment && (
