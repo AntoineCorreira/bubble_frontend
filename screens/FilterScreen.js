@@ -7,7 +7,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { CheckBox } from 'react-native-elements';
 
 // Définition du composant FilterScreen avec une image d'arrière-plan
-const FilterScreen = ({ background = require('../assets/background.png') }) => {
+const FilterScreen = ({ navigation, background = require('../assets/background.png') }) => {
   // Déclaration des états avec useState
   const [selectedMenu, setSelectedMenu] = useState('Ponctuelle'); // Menu sélectionné (Ponctuelle ou Régulier)
   const [search, setSearch] = useState(''); // Texte de recherche
