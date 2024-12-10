@@ -13,7 +13,7 @@ const initialState = {
   zip: null,
   phone: null,
   type: null,
-  children: [],
+  children: null,
 },
 };
 
@@ -23,8 +23,8 @@ export const nomDuReducerSlice = createSlice({
   initialState,
  reducers: {
    login : (state, action) => {
-     state.value.token = action.payload.token;
-     state.value.password = action.payload.password;
+     state.value.token = action.payload;
+     console.log(action.payload)
      state.value.email = action.payload.email;
      state.value.civility = action.payload.civility;
      state.value.name = action.payload.name;
@@ -36,8 +36,22 @@ export const nomDuReducerSlice = createSlice({
      state.value.type = action.payload.type;
      state.value.children = action.payload.children;
    },
+   logout : (state) =>{
+    state.value.token = null;
+     state.value.password = null;
+     state.value.email = null;
+     state.value.civility = null;
+     state.value.name = null;
+     state.value.firstname = null;
+     state.value.adress = null;
+     state.value.city = null;
+     state.value.zip = null;
+     state.value.phone = null;
+     state.value.type = null;
+     state.value.children = null;
+   }
  },
 });
 
-export const { nomFonction } = nomDuReducerSlice.actions;
+export const { nomFonction, login, lougout } = nomDuReducerSlice.actions;
 export default nomDuReducerSlice.reducer;
