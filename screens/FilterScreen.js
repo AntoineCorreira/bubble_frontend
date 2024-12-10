@@ -1,4 +1,3 @@
-// Importation des modules nécessaires depuis React et React Native
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ImageBackground, TextInput, Modal, ScrollView, StyleSheet } from 'react-native';
 import { Calendar } from 'react-native-calendars';
