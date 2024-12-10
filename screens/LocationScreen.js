@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ImageBackground, TextInput, Image, ScrollView, TouchableOpacity } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
-const LocationScreen = () => {
+const LocationScreen = ({ navigation }) => {
     const [viewMode, setViewMode] = useState('list'); // État pour basculer entre liste et carte
 
     const establishmentsData = [
@@ -55,7 +55,7 @@ const LocationScreen = () => {
         "image": "https://via.placeholder.com/150",
         "description": "Une crèche royale pour vos petits princes et princesses."
         }
-    ]
+    ];
 
     return (
         <ImageBackground
@@ -65,16 +65,19 @@ const LocationScreen = () => {
             <Text style={styles.title}>BUBBLE</Text>
             <View style={styles.content}>
                 <View style={styles.inputContainer}>
-                        <TextInput 
-                            style={styles.input} 
-                            placeholder='Location        .        Période        .        Type' 
-                            placeholderTextColor='#999999'
-                        />
-                        <FontAwesome name='search' size={20} color='#999999' style={styles.icon}/>
+                    <TextInput 
+                        style={styles.input} 
+                        placeholder='Location        .        Période        .        Type' 
+                        placeholderTextColor='#999999'
+                    />
+                    <FontAwesome name='search' size={20} color='#999999' style={styles.searchIcon} />
+                    <TouchableOpacity onPress={() => navigation.navigate('Filter')} style={styles.touchableStyle}>
+                        <FontAwesome name='sliders' size={20} color='#999999' style={styles.sliderIcon} />
+                    </TouchableOpacity>
                 </View>
                 <View style={styles.button}>
                     <TouchableOpacity 
-                        style={[ // Bouton pour afficher la liste des établissements
+                        style={[
                             styles.buttonList, 
                             viewMode === 'list' ? styles.activeButton : styles.inactiveButton
                         ]} 
@@ -83,7 +86,7 @@ const LocationScreen = () => {
                         <Text style={viewMode === 'list' ? styles.buttonTextActive : styles.buttonTextInactive}>Liste</Text>
                     </TouchableOpacity> 
                     <TouchableOpacity 
-                        style={[ // Bouton pour afficher la carte
+                        style={[
                             styles.buttonMap, 
                             viewMode === 'map' ? styles.activeButton : styles.inactiveButton
                         ]} 
@@ -92,7 +95,6 @@ const LocationScreen = () => {
                         <Text style={viewMode === 'map' ? styles.buttonTextActive : styles.buttonTextInactive}>Carte</Text>
                     </TouchableOpacity> 
                 </View>
-                {/* Render conditionnel de ScrollView ou Map */}
                 {viewMode === 'list' ? (
                     <ScrollView contentContainerStyle={styles.establishmentContainer}>
                         {establishmentsData.map((item, index) => (
@@ -108,7 +110,6 @@ const LocationScreen = () => {
                     </ScrollView>
                 ) : (
                     <View style={styles.mapContainer}>
-                        {/* Composant Map */}
                         <Text style={styles.mapText}>Here would be a map component!</Text>
                     </View>
                 )}
@@ -183,14 +184,23 @@ const styles = StyleSheet.create({
     buttonTextInactive: {
         color: '#FFFFFF',
     },
-    icon: {
+    searchIcon: {
+        position: 'absolute',
+        right: 60,
+    },
+    sliderIcon: {
+        right: 0, // Réduire l'écart à droite
+    },
+    touchableStyle: {
         position: 'absolute',
         right: 10,
+        padding: 10, // Assurer que la zone de clic est suffisamment grande
+        justifyContent: 'center', // Centrer verticalement l'icône à l'intérieur
     },
     input: {
         flex: 1,
         height: 40,
-        paddingRight: 30,
+        paddingRight: 90, // Ajustez ceci pour s'assurer qu'il y a de l'espace pour les deux icônes
     },
     establishmentContainer: {
         paddingVertical: 10,
