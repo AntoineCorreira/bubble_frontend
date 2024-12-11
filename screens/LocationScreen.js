@@ -1,196 +1,261 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { choosedEstablishment } from '../reducers/establishment';
 import * as Font from 'expo-font';
 import { View, Text, StyleSheet, ImageBackground, TextInput, Image, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
-import { useSelector } from 'react-redux';
 
 // Fonction pour calculer la distance entre deux points GPS
 function calculateDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * (Math.PI / 180);
-  const dLon = (lon2 - lon1) * (Math.PI / 180);
-  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
+    const R = 6371;
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
 }
 
 const LocationScreen = ({ navigation, route }) => {
-  const [viewMode, setViewMode] = useState('list');
-  const [location, setLocation] = useState(null);
-  const [selectedEstablishment, setSelectedEstablishment] = useState(null);
-  const [establishmentsData, setEstablishmentsData] = useState([]);
-  const searchCriteria = useSelector(state => state.searchCriteria);
+    const dispatch = useDispatch()
+    const [viewMode, setViewMode] = useState('list');
+    const [location, setLocation] = useState(null);
+    const [selectedEstablishment, setSelectedEstablishment] = useState(null);
+    const [establishmentsData, setEstablishmentsData] = useState([]);
+    const searchCriteria = useSelector(state => state.searchCriteria);
 
-  useEffect(() => {
-    (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === 'granted') {
-        const locationData = await Location.getCurrentPositionAsync({});
-        setLocation(locationData.coords);
-        console.log('Location:', locationData.coords);
-      } else {
-        console.warn('Location permissions not granted');
-      }
-    })();
-  }, []);
+    useEffect(() => {
+        (async () => {
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            if (status === 'granted') {
+                const locationData = await Location.getCurrentPositionAsync({});
+                setLocation(locationData.coords);
+                console.log('Location:', locationData.coords);
+            } else {
+                console.warn('Location permissions not granted');
+            }
+        })();
+    }, []);
 
-  useEffect(() => {
-    Font.loadAsync({
-      'Lily Script One': require('../assets/fonts/LilyScriptOne-Regular.ttf'),
-    });
+    useEffect(() => {
+        Font.loadAsync({
+            'Lily Script One': require('../assets/fonts/LilyScriptOne-Regular.ttf'),
+        });
 
-    const criteria = route.params?.searchCriteria || searchCriteria;
-    console.log('Critères de recherche dans LocationScreen:', criteria);
+        const criteria = route.params?.searchCriteria || searchCriteria;
+        console.log('Critères de recherche dans LocationScreen:', criteria);
 
-    const queryParts = [];
-    if (criteria.city) {
-      queryParts.push(`city=${encodeURIComponent(criteria.city)}`);
-    }
-    if (criteria.period && criteria.period !== ' - ') {
-      queryParts.push(`period=${encodeURIComponent(criteria.period)}`);
-    }
-    if (criteria.type) {
-      queryParts.push(`type=${encodeURIComponent(criteria.type)}`);
-    }
-    const query = queryParts.join('&');
-    console.log('Requête URL:', query);
+        const queryParts = [];
+        if (criteria.city) {
+            queryParts.push(`city=${encodeURIComponent(criteria.city)}`);
+        }
+        if (criteria.period && criteria.period !== ' - ') {
+            queryParts.push(`period=${encodeURIComponent(criteria.period)}`);
+        }
+        if (criteria.type) {
+            queryParts.push(`type=${encodeURIComponent(criteria.type)}`);
+        }
+        const query = queryParts.join('&');
+        console.log('Requête URL:', query);
 
-    fetch(`http://192.168.1.129:3000/establishments?${query}`)
-      .then(response => response.json())
-      .then(data => {
-        console.log('Réponse de l\'API:', data);
-        setEstablishmentsData(data.establishments);
-      })
-      .catch(error => {
-        console.error('Error fetching establishments:', error);
-      });
-  }, [route.params?.searchCriteria, searchCriteria]);
+        fetch(`http://192.168.1.154:3000/establishments?${query}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Réponse de l\'API:', data);
+                setEstablishmentsData(data.establishments);
+            })
+            .catch(error => {
+                console.error('Error fetching establishments:', error);
+            });
+    }, [route.params?.searchCriteria, searchCriteria]);
 
-  const criteria = route.params?.searchCriteria || searchCriteria; // Assurez-vous que `criteria` est bien défini
+    const criteria = route.params?.searchCriteria || searchCriteria; // Assurez-vous que `criteria` est bien défini
 
-  const establishmentList = location
-    ? establishmentsData
-        .filter(establishment => !criteria.city || establishment.city.toLowerCase() === criteria.city.toLowerCase()) // Filtrage par ville
-        .map((establishment, i) => {
-          const distance = calculateDistance(
-            location.latitude,
-            location.longitude,
-            establishment.latitude,
-            establishment.longitude
-          );
-          return { ...establishment, distance, i };
-        })
-        .sort((a, b) => a.distance - b.distance)
-        .map((establishment, i) => (
-          <View key={i} style={styles.establishmentItem}>
-            <Image source={{ uri: establishment.image }} style={styles.establishmentImage} />
-            <View style={styles.description}>
-              <View style={styles.nameAndDistance}>
-                <Text style={styles.itemName}>{establishment.name}</Text>
-                <Text style={styles.distanceText}>
-                  {establishment.distance.toFixed(2)} km
-                </Text>
-              </View>
-              <Text style={styles.itemDescription}>{establishment.description}</Text>
-            </View>
-            <FontAwesome name="plus-circle" size={30} color="#98B9F2" />
-          </View>
-        ))
-    : null;
+    const addEstablishmentToStore = (newEstablishment) => {
+        dispatch(choosedEstablishment({
+            name: newEstablishment.name,
+            description: newEstablishment.description,
+            type: newEstablishment.type,
+            address: newEstablishment.address,
+            city: newEstablishment.city,
+            zip: newEstablishment.zip,
+            phone: newEstablishment.phone,
+            mail: newEstablishment.mail,
+            image: newEstablishment.image,
+            schedules: newEstablishment.schedules,
+            capacity: newEstablishment.capacity,
+            type: newEstablishment.type,
+        }));
+        navigation.navigate('Establishment');
+    };
 
-  const mapMarkers = location
-    ? establishmentsData.map((establishment, index) => {
-        const distance = calculateDistance(
-          location.latitude,
-          location.longitude,
-          establishment.latitude,
-          establishment.longitude
-        );
-        return (
-          <Marker
-            key={index}
-            coordinate={{
-              latitude: establishment.latitude,
-              longitude: establishment.longitude,
-            }}
-            title={establishment.name}
-            description={`Distance: ${distance.toFixed(2)} km`}
-            onPress={() => {
-              setSelectedEstablishment(establishment);
-            }}
-          />
-        );
-      })
-    : null;
-
-  return (
-    <ImageBackground source={require('../assets/background.png')} style={styles.background}>
-      <Text style={styles.title}>BUBBLE</Text>
-      <View style={styles.content}>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="City . Period . Type"
-            placeholderTextColor="#999999"
-            onPress={() => navigation.navigate('Filter')}
-          />
-          <FontAwesome name="search" size={20} color="#999999" style={styles.icon} />
-        </View>
-               
-        <View style={styles.button}>
-          <TouchableOpacity
-            style={[styles.buttonList, viewMode === 'list' ? styles.activeButton : styles.inactiveButton]}
-            onPress={() => setViewMode('list')}
-          >
-            <Text style={viewMode === 'list' ? styles.buttonTextActive : styles.buttonTextInactive}>
-              Liste
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.buttonMap, viewMode === 'map' ? styles.activeButton : styles.inactiveButton]}
-            onPress={() => setViewMode('map')}
-          >
-            <Text style={viewMode === 'map' ? styles.buttonTextActive : styles.buttonTextInactive}>
-              Carte
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {viewMode === 'list' ? (
-          <ScrollView contentContainerStyle={styles.establishmentContainer}>
-            {establishmentList}
-          </ScrollView>
-        ) : (
-          <View style={styles.mapContainer}>
-            <MapView
-              style={styles.map}
-              region={location ? {
-                latitude: location.latitude,
-                longitude: location.longitude,
-                latitudeDelta: 0.1,
-                longitudeDelta: 0.1,
-              } : { latitude: 46.603354, longitude: 1.888334, latitudeDelta: 10, longitudeDelta: 10 }}
-            >
-              {mapMarkers}
-            </MapView>
-                        
-            {selectedEstablishment && (
-              <View style={styles.selectedEstablishment}>
-                <Image source={{ uri: selectedEstablishment.image }} style={styles.establishmentImage} />
-                <View style={styles.description}>
-                  <Text style={styles.itemName}>{selectedEstablishment.name}</Text>
-                  <Text style={styles.itemDescription}>{selectedEstablishment.description}</Text>
+    // Préparer la liste des établissements avec leurs distances depuis la position actuelle
+    const establishmentList = location
+        ? establishmentsData
+            .filter(establishment => !criteria.city || establishment.city.toLowerCase() === criteria.city.toLowerCase()) // Filtrage par ville
+            .map((establishment, i) => {
+                // Calculer la distance entre l'utilisateur et chaque établissement
+                const distance = calculateDistance(
+                    location.latitude,
+                    location.longitude,
+                    establishment.latitude,
+                    establishment.longitude
+                );
+                return { ...establishment, distance, i }; // Ajouter la distance et l'index aux données
+            })
+            .sort((a, b) => a.distance - b.distance) // Trier par distance croissante
+            .map((establishment, i) => (
+                <View key={i} style={styles.establishmentItem}>
+                    <Image source={{ uri: establishment.image }} style={styles.establishmentImage} />
+                    <View style={styles.description}>
+                        <View style={styles.nameAndDistance}>
+                            <Text style={styles.itemName}>{establishment.name}</Text>
+                            <Text style={styles.distanceText}>
+                                {establishment.distance.toFixed(2)} km
+                            </Text>
+                        </View>
+                        <Text style={styles.itemDescription}>{establishment.description}</Text>
+                    </View>
+                    <FontAwesome name="plus-circle" size={30} color="#98B9F2" onPress={() => {addEstablishmentToStore(establishment)}}/>
                 </View>
-                <FontAwesome name="plus-circle" size={30} color="#98B9F2" />
-              </View>
-            )}
-          </View>
-        )}
-      </View>
-    </ImageBackground>
-  );
+            ))
+        : null; // Ne pas afficher la liste si location est null
+
+
+    // const establishmentList = location
+    //  ? establishmentsData
+    //      .map((establishment, i) => {
+
+    //          const distance = calculateDistance(
+    //              location.latitude,
+    //              location.longitude,
+    //              establishment.latitude,
+    //              establishment.longitude
+    //          );
+    //          return {...establishment, distance, i}; 
+    //      })
+    //      .sort((a, b) => a.distance - b.distance) 
+    //      .map((establishment, i) => (
+    //          <View key={i} style={styles.establishmentItem}>
+    //              <Image
+    //                  source={{ uri: establishment.image }}
+    //                  style={styles.establishmentImage}
+    //              />
+    //              <View style={styles.description}>
+    //                  <View style={styles.nameAndDistance}>
+    //                      <Text style={styles.itemName}>{establishment.name}</Text>
+    //                      <Text style={styles.distanceText}>
+    //                          {establishment.distance.toFixed(2)} km
+    //                      </Text>
+    //                  </View>
+    //                  <Text style={styles.itemDescription}>
+    //                      {establishment.description}
+    //                  </Text>
+    //              </View>
+    //              <FontAwesome name="plus-circle" size={30} color="#98B9F2" onPress={() => {addEstablishmentToStore(establishment)}} />
+    //          </View>
+    //      ))
+    //  : null;  
+
+    const mapMarkers = location
+        ? establishmentsData.map((establishment, index) => {
+            const distance = calculateDistance(
+                location.latitude,
+                location.longitude,
+                establishment.latitude,
+                establishment.longitude
+            );
+            return (
+                <Marker
+                    key={index}
+                    coordinate={{
+                        latitude: establishment.latitude,
+                        longitude: establishment.longitude,
+                    }}
+                    title={establishment.name}
+                    description={`Distance: ${distance.toFixed(2)} km`}
+                    onPress={() => {
+                        setSelectedEstablishment(establishment);
+                    }}
+                />
+            );
+        })
+        : null;
+
+    return (
+        <ImageBackground source={require('../assets/background.png')} style={styles.background}>
+            <Text style={styles.title}>BUBBLE</Text>
+            <View style={styles.content}>
+                <View style={styles.inputContainer}>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="City . Period . Type"
+                        placeholderTextColor="#999999"
+                        onPress={() => navigation.navigate('Filter')}
+                    />
+                    <FontAwesome name="search" size={20} color="#999999" style={styles.icon} />
+                </View>
+
+                <View style={styles.button}>
+                    <TouchableOpacity
+                        style={[styles.buttonList, viewMode === 'list' ? styles.activeButton : styles.inactiveButton]}
+                        onPress={() => setViewMode('list')}
+                    >
+                        <Text style={viewMode === 'list' ? styles.buttonTextActive : styles.buttonTextInactive}>
+                            Liste
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.buttonMap, viewMode === 'map' ? styles.activeButton : styles.inactiveButton]}
+                        onPress={() => setViewMode('map')}
+                    >
+                        <Text style={viewMode === 'map' ? styles.buttonTextActive : styles.buttonTextInactive}>
+                            Carte
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+
+                {viewMode === 'list' ? (
+                    <ScrollView contentContainerStyle={styles.establishmentContainer}>
+                        {establishmentList}
+                    </ScrollView>
+                ) : (
+                    <View style={styles.mapContainer}>
+                        <MapView
+                            style={styles.map}
+                            region={location ? {
+                                latitude: location.latitude,
+                                longitude: location.longitude,
+                                latitudeDelta: 0.1,
+                                longitudeDelta: 0.1,
+                            } : { latitude: 46.603354, longitude: 1.888334, latitudeDelta: 10, longitudeDelta: 10 }}
+                        >
+                            {mapMarkers}
+                        </MapView>
+
+                        {selectedEstablishment && (
+                            <View style={styles.selectedEstablishment}>
+                                <Image
+                                    source={{ uri: selectedEstablishment.image }}
+                                    style={styles.establishmentImage}
+                                />
+                                <View style={styles.description}>
+                                    <Text style={styles.itemName}>
+                                        {selectedEstablishment.name}
+                                    </Text>
+                                    <Text style={styles.itemDescription}>
+                                        {selectedEstablishment.description}
+                                    </Text>
+                                </View>
+                                <FontAwesome name="plus-circle" size={30} color="#98B9F2" onPress={() => { addEstablishmentToStore(selectedEstablishment) }} />
+                            </View>
+                        )}
+                    </View>
+                )}
+            </View>
+        </ImageBackground>
+    );
 };
 
 const styles = StyleSheet.create({
@@ -307,8 +372,8 @@ const styles = StyleSheet.create({
     mapContainer: {
         justifyContent: 'center',
         alignItems: 'center',
-        height: 400, 
-        width: 347, 
+        height: 400,
+        width: 347,
         borderRadius: 10,
         marginVertical: 50,
     },
@@ -316,7 +381,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: '#555',
     },
-    map:  {
+    map: {
         width: '100%',
         height: '100%',
     },

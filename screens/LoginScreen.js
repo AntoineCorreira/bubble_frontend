@@ -15,7 +15,7 @@ export default function LoginScreen({ navigation }) {
     const [emailError2, setEmailError2] = useState(false);
 
     const user = useSelector((state)=>state.user.value)
-  console.log(user)
+    console.log(user)
     const dispatch = useDispatch()
 
      // fonction pour le signup
