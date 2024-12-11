@@ -7,6 +7,8 @@ import { CheckBox } from 'react-native-elements';
 import { useDispatch } from 'react-redux';
 import { setSearchCriteria } from '../reducers/searchCriteria';
 
+
+
 const FilterScreen = ({ navigation, background = require('../assets/background.png') }) => {
   const [selectedMenu, setSelectedMenu] = useState('Ponctuelle');
   const [search, setSearch] = useState('');
@@ -30,7 +32,7 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
   const dispatch = useDispatch();
 
   useEffect(() => {
-    fetch('http://192.168.1.154:3000/establishments/type')
+    fetch(`http://192.168.1.129:3000/establishments/type`)
       .then(response => response.json())
       .then(data => {
         console.log('Types de garde récupérés:', data);
@@ -41,7 +43,7 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
       });
   
     if (selectedCity) {
-      fetch(`http://192.168.1.154:3000/establishments?city=${encodeURIComponent(selectedCity)}`)
+      fetch(`http://192.168.1.129:3000/establishments?city=${encodeURIComponent(selectedCity)}`)
         .then(response => response.json())
         .then(data => {
           console.log('Établissements récupérés:', data);
@@ -52,7 +54,7 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
         });
     }
   
-    fetch('http://192.168.1.154:3000/establishments/period')
+    fetch(`http://192.168.1.129:3000/establishments/period`)
       .then(response => response.json())
       .then(data => {
         console.log('Périodes récupérées:', data);
@@ -62,7 +64,7 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
         console.error('Error fetching periods:', error);
       });
   
-    fetch('http://192.168.1.154:3000/users/children')
+    fetch(`http://192.168.1.129:3000/users/children`)
       .then(response => response.json())
       .then(data => {
         console.log('Noms des enfants récupérés:', data);
@@ -72,6 +74,7 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
         console.error('Error fetching children names:', error);
       });
   }, [selectedCity]);
+  
   
  
   useEffect(() => {

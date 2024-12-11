@@ -7,6 +7,8 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 
+
+
 // Fonction pour calculer la distance entre deux points GPS
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371;
@@ -59,16 +61,17 @@ const LocationScreen = ({ navigation, route }) => {
         const query = queryParts.join('&');
         console.log('Requête URL:', query);
 
-        fetch(`http://192.168.1.154:3000/establishments?${query}`)
-            .then(response => response.json())
-            .then(data => {
-                console.log('Réponse de l\'API:', data);
-                setEstablishmentsData(data.establishments);
-            })
-            .catch(error => {
-                console.error('Error fetching establishments:', error);
-            });
-    }, [route.params?.searchCriteria, searchCriteria]);
+        fetch(`http://192.168.1.129:3000/establishments?${query}`)
+  .then(response => response.json())
+  .then(data => {
+    console.log('Réponse de l\'API:', data);
+    setEstablishmentsData(data.establishments);
+  })
+  .catch(error => {
+    console.error('Error fetching establishments:', error);
+  });
+}, [route.params?.searchCriteria, searchCriteria]);
+
 
     const criteria = route.params?.searchCriteria || searchCriteria; // Assurez-vous que `criteria` est bien défini
 
