@@ -20,7 +20,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 }
 
 const LocationScreen = ({ navigation, route }) => {
-    const dispatch = useDispatch()
+    const dispatch = useDispatch();
     const [viewMode, setViewMode] = useState('list');
     const [location, setLocation] = useState(null);
     const [selectedEstablishment, setSelectedEstablishment] = useState(null);
@@ -62,16 +62,15 @@ const LocationScreen = ({ navigation, route }) => {
         console.log('Requête URL:', query);
 
         fetch(`http://192.168.1.129:3000/establishments?${query}`)
-  .then(response => response.json())
-  .then(data => {
-    console.log('Réponse de l\'API:', data);
-    setEstablishmentsData(data.establishments);
-  })
-  .catch(error => {
-    console.error('Error fetching establishments:', error);
-  });
-}, [route.params?.searchCriteria, searchCriteria]);
-
+            .then(response => response.json())
+            .then(data => {
+                console.log('Réponse de l\'API:', data);
+                setEstablishmentsData(data.establishments);
+            })
+            .catch(error => {
+                console.error('Error fetching establishments:', error);
+            });
+    }, [route.params?.searchCriteria, searchCriteria]);
 
     const criteria = route.params?.searchCriteria || searchCriteria; // Assurez-vous que `criteria` est bien défini
 
