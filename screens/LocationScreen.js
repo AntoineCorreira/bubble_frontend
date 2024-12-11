@@ -48,7 +48,7 @@ const LocationScreen = ({ navigation }) => {
             'Lily Script One': require('../assets/fonts/LilyScriptOne-Regular.ttf'),
         });
 
-        fetch('http://192.168.1.154:3000/establishments/all')
+        fetch('http://192.168.1.53:3000/establishments/all')
         .then(response => response.json())
         .then(data => {
             // Stocker les établissements dans l'état `establishmentsData`
