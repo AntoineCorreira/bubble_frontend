@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { choosedEstablishment } from '../reducers/establishment';
 import * as Font from 'expo-font';
 import { View, Text, StyleSheet, ImageBackground, TextInput, Image, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 
-//Commentaire
 // Fonction pour calculer la distance entre deux points GPS
 // Utilise la formule de Haversine pour déterminer la distance entre deux coordonnées
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -21,6 +22,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 }
 
 const LocationScreen = ({ navigation }) => {
+    const dispatch = useDispatch()
     const [viewMode, setViewMode] = useState('list'); // État pour basculer entre vue liste et vue carte
     const [location, setLocation] = useState(null); // État pour stocker les coordonnées GPS de l'utilisateur
     const [selectedEstablishment, setSelectedEstablishment] = useState(null); // État pour stocker l'établissement sélectionné sur la carte
@@ -56,6 +58,24 @@ const LocationScreen = ({ navigation }) => {
             })
     }, [])
 
+    const addEstablishmentToStore = (newEstablishment) => {
+        dispatch(choosedEstablishment({
+            name: newEstablishment.name,
+            description: newEstablishment.description,
+            type: newEstablishment.type,
+            address: newEstablishment.address,
+            city: newEstablishment.city,
+            zip: newEstablishment.zip,
+            phone: newEstablishment.phone,
+            mail: newEstablishment.mail,
+            image: newEstablishment.image,
+            schedules: newEstablishment.schedules,
+            capacity: newEstablishment.capacity,
+            type: newEstablishment.type,
+        }));
+        navigation.navigate('Establishment');
+    };
+
     // Préparer la liste des établissements avec leurs distances depuis la position actuelle
     const establishmentList = location
      ? establishmentsData
@@ -87,7 +107,7 @@ const LocationScreen = ({ navigation }) => {
                          {establishment.description}
                      </Text>
                  </View>
-                 <FontAwesome name="plus-circle" size={30} color="#98B9F2" />
+                 <FontAwesome name="plus-circle" size={30} color="#98B9F2" onPress={() => {addEstablishmentToStore(establishment)}} />
              </View>
          ))
      : null;  // Ne pas afficher la liste si location est null
@@ -187,7 +207,7 @@ const LocationScreen = ({ navigation }) => {
                                         {selectedEstablishment.description}
                                     </Text>
                                 </View>
-                                <FontAwesome name="plus-circle" size={30} color="#98B9F2" />
+                                <FontAwesome name="plus-circle" size={30} color="#98B9F2" onPress={() => {addEstablishmentToStore(selectedEstablishment)}} />
                             </View>
                         )}
                     </View>
