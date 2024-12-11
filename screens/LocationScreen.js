@@ -59,7 +59,7 @@ const LocationScreen = ({ navigation, route }) => {
         const query = queryParts.join('&');
         console.log('Requête URL:', query);
 
-        fetch(`http://192.168.1.154:3000/establishments?${query}`)
+        fetch(`http://192.168.1.53:3000/establishments?${query}`)
             .then(response => response.json())
             .then(data => {
                 console.log('Réponse de l\'API:', data);

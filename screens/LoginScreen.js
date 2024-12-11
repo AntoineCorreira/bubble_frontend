@@ -1,9 +1,8 @@
-import { StyleSheet, Text, View, TouchableOpacity, ImageBackground, TextInput } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, ImageBackground, TextInput, KeyboardAvoidingView, Platform } from 'react-native'
 // import { Navigation } from '@react-navigation/native';
 import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { login, logout} from '../reducers/user';
-
 export default function LoginScreen({ navigation }) {
    //pour chaques champ un hook d etat
     const [emailSignup, setEmailSignup] = useState('');
@@ -30,6 +29,7 @@ export default function LoginScreen({ navigation }) {
             })
             .then(response => response.json())
             .then(data=>{
+              console.log(data)
                 if(data.result){
                     dispatch(login({email: emailSignup, token : data.token}))
                     navigation.navigate('Info')
@@ -67,8 +67,12 @@ export default function LoginScreen({ navigation }) {
     
 
     return (
+      
         <ImageBackground style={styles.imageBackground}source={require('../assets/background.png')}>
-          <Text style={styles.title}>BUBBLE</Text>
+          <KeyboardAvoidingView style={styles.container}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'} // Différent comportement pour iOS et Android
+          >
+           <Text style={styles.title}>BUBBLE</Text>
             <View style={styles.logoutContainer}>
               <Text style={styles.text}>Créé un compte</Text>
               <TextInput style={styles.input} onChangeText={(value)=>setEmailSignup(value)} value={ emailSignup } placeholder='Email' placeholderTextColor='#999999'/>
@@ -78,7 +82,7 @@ export default function LoginScreen({ navigation }) {
                 <TouchableOpacity onPress={() => handleSubmit()} style={styles.button} activeOpacity={0.8}>
                 <Text style={styles.textButton}>S'inscrire</Text>
                 </TouchableOpacity>
-                <Text style={styles.text}>ou</Text>
+              
                 <TouchableOpacity onPress={() => navigation.navigate('TabNavigator', { screen: 'Search' })} style={styles.button} activeOpacity={0.8}>
                 <Text style={styles.textButton}>S'inscrire avec Google</Text>
                 </TouchableOpacity>
@@ -92,20 +96,24 @@ export default function LoginScreen({ navigation }) {
               {emailError2 && <Text style={styles.errorText}>Email ou mot de passe non valide</Text>}
               <View style={styles.buttonContainer}>
                 <TouchableOpacity onPress={() => handleLogin()} style={styles.button} activeOpacity={0.8}>
-                <Text style={styles.textButton}>Ce connecter</Text>
+                <Text style={styles.textButton}>Connexion</Text>
                 </TouchableOpacity>
-                <Text style={styles.text}>ou</Text>
-                <TouchableOpacity onPress={() => handleGoogleSignin()} style={styles.button} activeOpacity={0.8}>
+                <TouchableOpacity onPress={() =>   navigation.navigate('Info')} style={styles.button} activeOpacity={0.8}>
                 <Text style={styles.textButton}>Ce connecter avec Google</Text>
                 </TouchableOpacity>
               </View>
             </View>
+            </KeyboardAvoidingView>
         </ImageBackground>
     )
 }
 
 
 const styles = StyleSheet.create({
+  container:{
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   imageBackground:{
    flex: 1,
    alignItems: 'center',
@@ -144,8 +152,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   input: {
+    justifyContent:'center',
+    alignItems:'center',
     width: 347,
-    height: 51,
+    height: 40,
     paddingRight: 30,
     backgroundColor: '#FFFFFF',
     borderRadius: 10,
