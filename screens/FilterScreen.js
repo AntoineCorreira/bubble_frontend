@@ -5,147 +5,174 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { CheckBox } from 'react-native-elements';
 import { useDispatch } from 'react-redux';
-import { setSearchCriteria } from '../reducers/searchCriteria'; // Importer setSearchCriteria
+import { setSearchCriteria } from '../reducers/searchCriteria';
 
-// Définition du composant FilterScreen avec une image d'arrière-plan
 const FilterScreen = ({ navigation, background = require('../assets/background.png') }) => {
-  // Déclaration des états avec useState
-  const [selectedMenu, setSelectedMenu] = useState('Ponctuelle'); // Menu sélectionné (Ponctuelle ou Régulier)
-  const [search, setSearch] = useState(''); // Texte de recherche
-  const [modalVisible, setModalVisible] = useState(false); // Visibilité de la modale des types de garde
-  const [childrenModalVisible, setChildrenModalVisible] = useState(false); // Visibilité de la modale des enfants
-  const [selectedTypes, setSelectedTypes] = useState([]); // Types de soins sélectionnés
-  const [selectedStartDate, setSelectedStartDate] = useState(''); // Date de début sélectionnée
-  const [selectedEndDate, setSelectedEndDate] = useState(''); // Date de fin sélectionnée
-  const [startTime, setStartTime] = useState(new Date()); // Heure de début sélectionnée
-  const [endTime, setEndTime] = useState(new Date()); // Heure de fin sélectionnée
-  const [showStartTimePicker, setShowStartTimePicker] = useState(false); // Affichage du sélecteur d'heure de début
-  const [showEndTimePicker, setShowEndTimePicker] = useState(false); // Affichage du sélecteur d'heure de fin
-  const [selectedChildren, setSelectedChildren] = useState([]); // Enfants sélectionnés
-  const [childrenItems, setChildrenItems] = useState([ // Liste des enfants disponibles
-    { id: '1', name: 'Alice' },
-    { id: '2', name: 'Bob' },
-    { id: '3', name: 'Charlie' },
-    { id: '4', name: 'Daisy' },
-  ]);
-  const [childrenPlaceholder, setChildrenPlaceholder] = useState('Nom de votre enfant'); // Placeholder pour le champ des enfants
+  const [selectedMenu, setSelectedMenu] = useState('Ponctuelle');
+  const [search, setSearch] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [childrenModalVisible, setChildrenModalVisible] = useState(false);
+  const [selectedTypes, setSelectedTypes] = useState([]);
+  const [selectedStartDate, setSelectedStartDate] = useState('');
+  const [selectedEndDate, setSelectedEndDate] = useState('');
+  const [startTime, setStartTime] = useState(new Date());
+  const [endTime, setEndTime] = useState(new Date());
+  const [showStartTimePicker, setShowStartTimePicker] = useState(false);
+  const [showEndTimePicker, setShowEndTimePicker] = useState(false);
+  const [selectedChildren, setSelectedChildren] = useState([]);
+  const [childrenItems, setChildrenItems] = useState([]);
+  const [childrenPlaceholder, setChildrenPlaceholder] = useState('Nom de votre enfant');
+  const [typesOfCare, setTypesOfCare] = useState([]);
+  const [selectedCity, setSelectedCity] = useState('');
+  const [cities, setCities] = useState([]);
+  const [periods, setPeriods] = useState([]);
 
-  const dispatch = useDispatch(); // Utiliser useDispatch pour dispatcher les actions
+  const dispatch = useDispatch();
 
-  // Mise à jour du placeholder en fonction des enfants sélectionnés
+  useEffect(() => {
+    fetch('http://192.168.1.129:3000/establishments/type')
+      .then(response => response.json())
+      .then(data => {
+        console.log('Types de garde récupérés:', data);
+        setTypesOfCare(data);
+      })
+      .catch(error => {
+        console.error('Error fetching types of care:', error);
+      });
+  
+    if (selectedCity) {
+      fetch(`http://192.168.1.129:3000/establishments?city=${encodeURIComponent(selectedCity)}`)
+        .then(response => response.json())
+        .then(data => {
+          console.log('Établissements récupérés:', data);
+          setCities(data); // Assurez-vous que vous définissez setCities
+        })
+        .catch(error => {
+          console.error('Error fetching establishments:', error);
+        });
+    }
+  
+    fetch('http://192.168.1.129:3000/establishments/period')
+      .then(response => response.json())
+      .then(data => {
+        console.log('Périodes récupérées:', data);
+        setPeriods(data);
+      })
+      .catch(error => {
+        console.error('Error fetching periods:', error);
+      });
+  
+    fetch('http://192.168.1.129:3000/users/children')
+      .then(response => response.json())
+      .then(data => {
+        console.log('Noms des enfants récupérés:', data);
+        setChildrenItems(data.children);
+      })
+      .catch(error => {
+        console.error('Error fetching children names:', error);
+      });
+  }, [selectedCity]);
+  
+ 
   useEffect(() => {
     if (selectedChildren.length === 0) {
-      setChildrenPlaceholder('Nom de votre enfant'); // Si aucun enfant n'est sélectionné, afficher le placeholder par défaut
+      setChildrenPlaceholder('Nom de votre enfant');
     } else {
-      const selectedNames = selectedChildren.map(child => child.name).join(', '); // Récupérer les noms des enfants sélectionnés
+      const selectedNames = selectedChildren.map(child => child.name).join(', ');
       if (selectedNames.length > 20) {
-        setChildrenPlaceholder(`${selectedNames.substring(0, 17)}...`); // Si les noms sont trop longs, les tronquer
+        setChildrenPlaceholder(`${selectedNames.substring(0, 17)}...`);
       } else {
-        setChildrenPlaceholder(selectedNames); // Sinon, afficher les noms complets
+        setChildrenPlaceholder(selectedNames);
       }
     }
-  }, [selectedChildren]); // Exécuter ce code à chaque fois que la liste des enfants sélectionnés change
+  }, [selectedChildren]);
 
-  // Fonction pour basculer la visibilité de la modale des types de garde
   const toggleModal = () => {
     setModalVisible(!modalVisible);
   };
 
-  // Fonction pour basculer la visibilité de la modale des enfants
   const toggleChildrenModal = () => {
     setChildrenModalVisible(!childrenModalVisible);
   };
 
-  // Fonction pour gérer les changements de sélection des enfants
   const handleCheckboxChange = (child) => {
     setSelectedChildren(prevSelectedChildren => {
       if (prevSelectedChildren.some(selected => selected.id === child.id)) {
-        // Si l'enfant est déjà sélectionné, le retirer de la liste
         return prevSelectedChildren.filter(selected => selected.id !== child.id);
       } else {
-        // Sinon, ajouter l'enfant à la liste
         return [...prevSelectedChildren, child];
       }
     });
   };
 
-  // Fonction pour gérer le changement de date sélectionnée
   const handleDateChange = (day) => {
     if (selectedStartDate && !selectedEndDate) {
-      setSelectedEndDate(day.dateString); // Si une date de début est déjà sélectionnée, définir la date de fin
+      setSelectedEndDate(day.dateString);
     } else {
-      setSelectedStartDate(day.dateString); // Sinon, définir la date de début
-      setSelectedEndDate(''); // Réinitialiser la date de fin
+      setSelectedStartDate(day.dateString);
+      setSelectedEndDate('');
     }
   };
 
-  // Fonction pour gérer le changement d'heure de début
   const handleStartTimeChange = (event, selectedDate) => {
     const currentDate = selectedDate || startTime;
-    setShowStartTimePicker(false); // Masquer le sélecteur d'heure de début
-    setStartTime(currentDate); // Définir l'heure de début sélectionnée
+    setShowStartTimePicker(false);
+    setStartTime(currentDate);
   };
 
-  // Fonction pour gérer le changement d'heure de fin
   const handleEndTimeChange = (event, selectedDate) => {
     const currentDate = selectedDate || endTime;
-    setShowEndTimePicker(false); // Masquer le sélecteur d'heure de fin
-    setEndTime(currentDate); // Définir l'heure de fin sélectionnée
+    setShowEndTimePicker(false);
+    setEndTime(currentDate);
   };
 
-  // Fonction pour obtenir les dates marquées sur le calendrier
   const getMarkedDates = () => {
     let markedDates = {};
     if (selectedStartDate) {
-      markedDates[selectedStartDate] = {selected: true, startingDay: true, color: 'green'}; // Marquer la date de début en vert
+      markedDates[selectedStartDate] = { selected: true, startingDay: true, color: 'green' };
     }
     if (selectedEndDate) {
-      markedDates[selectedEndDate] = {selected: true, endingDay: true, color: 'green'}; // Marquer la date de fin en vert
-      let start = new Date(selectedStartDate); // Débuter la boucle de dates à partir de la date de début sélectionnée
-      let end = new Date(selectedEndDate); // Fin de la boucle de dates à la date de fin sélectionnée
+      markedDates[selectedEndDate] = { selected: true, endingDay: true, color: 'green' };
+      let start = new Date(selectedStartDate);
+      let end = new Date(selectedEndDate);
       while (start < end) {
-        start.setDate(start.getDate() + 1); // Avancer d'un jour
-        const dateString = start.toISOString().split('T')[0]; // Convertir la date en chaîne ISO et récupérer la partie date
+        start.setDate(start.getDate() + 1);
+        const dateString = start.toISOString().split('T')[0];
         if (dateString !== selectedEndDate) {
-          markedDates[dateString] = {selected: true, color: 'lightgreen'}; // Marquer les dates intermédiaires en vert clair
+          markedDates[dateString] = { selected: true, color: 'lightgreen' };
         }
       }
     }
-    return markedDates; // Retourner les dates marquées
+    return markedDates;
   };
 
-  // Fonction pour réinitialiser tous les filtres et les états sélectionnés
   const handleReset = () => {
-    setSelectedTypes([]); // Réinitialiser les types de garde sélectionnés
-    setSelectedStartDate(''); // Réinitialiser la date de début
-    setSelectedEndDate(''); // Réinitialiser la date de fin
-    setStartTime(new Date()); // Réinitialiser l'heure de début
-    setEndTime(new Date()); // Réinitialiser l'heure de fin
-    setSelectedChildren([]); // Réinitialiser les enfants sélectionnés
-    setSearch(''); // Réinitialiser le texte de recherche
+    setSelectedTypes([]);
+    setSelectedStartDate('');
+    setSelectedEndDate('');
+    setStartTime(new Date());
+    setEndTime(new Date());
+    setSelectedChildren([]);
+    setSearch('');
+    setSelectedCity('');
   };
 
-  // Liste des types de garde disponibles
-  const typesOfCare = [
-    'Crèches', 
-    'MAM', 
-    'Babysitter', 
-    'Garde à domicile', 
-  ];
-
-  // Fonction pour soumettre les filtres et naviguer de retour à LocationScreen
   const handleSubmit = () => {
-    // Mettre à jour les critères de recherche dans Redux
+    console.log('Critères envoyés:', {
+      city: selectedCity, // Utilisation de la ville sélectionnée
+      period: selectedStartDate + ' - ' + selectedEndDate,
+      type: selectedTypes.join(', '),
+    });
+
     dispatch(setSearchCriteria({
-      location: search,
+      city: selectedCity, // Utilisation de la ville sélectionnée
       period: selectedStartDate + ' - ' + selectedEndDate,
       type: selectedTypes.join(', '),
     }));
-    // Naviguer de retour à LocationScreen
-    navigation.navigate('Search');
+    navigation.navigate('Location');
   };
 
-
+  
 
   return (
     <ImageBackground source={background} style={styles.background}>
@@ -168,13 +195,14 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
         </View>
   
         <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Localisation"
-            placeholderTextColor="#ccc"
-            value={search}
-            onChangeText={setSearch}
-          />
+        <TextInput
+  style={styles.searchInput}
+  placeholder="Localisation"
+  placeholderTextColor="#ccc"
+  value={selectedCity}
+  onChangeText={(value) => setSelectedCity(value)}
+/>
+
           <FontAwesome name="search" style={styles.searchIcon} />
           <TouchableOpacity onPress={toggleModal}>
             <FontAwesome name="sliders" style={styles.sliderIcon} />

@@ -7,7 +7,9 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import user from './reducers/user';
-import searchCriteria from './reducers/searchCriteria'; // Importer searchCriteria
+import searchCriteria from './reducers/searchCriteria'; 
+
+
 
 import LoginScreen from './screens/LoginScreen';
 import CoordonneeScreen from './screens/CoordonneeScreen';
@@ -66,6 +68,7 @@ export default function App() {
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Filter" component={FilterScreen} />
+          <Stack.Screen name="Location" component={LocationScreen} />
           <Stack.Screen name="Info" component={CoordonneeScreen} />
           <Stack.Screen name="TabNavigator" component={TabNavigator} />
         </Stack.Navigator>
