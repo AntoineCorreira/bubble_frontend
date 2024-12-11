@@ -3,13 +3,13 @@ import { createSlice } from '@reduxjs/toolkit';
 const searchCriteriaSlice = createSlice({
   name: 'searchCriteria',
   initialState: {
-    location: '',
+    city: '',
     period: '',
     type: '',
   },
   reducers: {
     setSearchCriteria: (state, action) => {
-      state.location = action.payload.location;
+      state.city = action.payload.city;
       state.period = action.payload.period;
       state.type = action.payload.type;
     },
