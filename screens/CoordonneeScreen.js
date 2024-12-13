@@ -1,42 +1,43 @@
 import { ImageBackground, TouchableOpacity, StyleSheet, Text, View, KeyboardAvoidingView, Platform, TextInput } from 'react-native'// import de KeyboardAvoidingView et Platform pour probleme clavier qui cache input
-import React from 'react'
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react'
+
 //utilisation de redux useSelector pour recuperer le token pour le fetch
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 //import de la bibliotheque expo-checkbox
 import { Checkbox } from 'expo-checkbox';
 
-
-export default function CoordonneeScreen() {
+//ajout du module navigation
+export default function CoordonneeScreen({navigation}) {
   const [isMonsieurSelected, setMonsieurSelected] = useState(false);
   const [isMadameSelected, setMadameSelected] = useState(false);
   //tout les etats de champs
-  const [civility, setCivility] = useState('')
-  const [name, setName] = useState('')
-  const [firstname, setFirstname] = useState('')
-  const [adress, setAdress] = useState('')
-  const [city, setCity] = useState('')
-  const [zip, setZip] = useState('')
-  const [phone, setPhone] = useState('')
-
+  const [civility, setCivility] = useState('');
+  const [name, setName] = useState('');
+  const [firstname, setFirstname] = useState('');
+  const [adress, setAdress] = useState('');
+  const [city, setCity] = useState('');
+  const [zip, setZip] = useState('');
+  const [phone, setPhone] = useState('');
+  
+//utilisation du useSelector pour recuperer la valeur du token
   const user = useSelector((state)=>state.user.value)
-  console.log(user.token)
+
 // creation de la fonction handleSubmit pour sauvegarder toutes les nouvelles données de l'utilisateur
-     const handleSubmit1 = () => {
+     const handleSubmit = () => {
      fetch('http://192.168.1.53:3000/users/addData', {
       method: 'POST',
       headers: {'Content-type' : 'application/json'},
-      body: JSON.stringify({ civility: civility, name: name, firstname: firstname, adress: adress, city: city, zip: zip, phone: phone, token : user.token })
-     })
-     .then(response => response.json())
-     .then(data=>{
-      console.log(data)
-     })
+      body: JSON.stringify({ civility: civility, name: name, firstname: firstname, address: adress, city: city, zip: zip, phone: phone, token : user.token })
+      })
+      .then( response => response.json())
+      .then(data=>{
+        if(data.dataBdd.token){
+          navigation.navigate('Enfant');
+        }
+      })
   }
-
-
-
-  // Fonction pour gérer la sélection
+ 
+  // Fonction pour gérer la sélection (checkbox)
   const handleSelection = (selectedGender) => {
       if (selectedGender === 'Monsieur') {
       setCivility(selectedGender)  
@@ -54,7 +55,6 @@ export default function CoordonneeScreen() {
       <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <Text style={styles.title}>BUBBLE</Text>
         <View style={styles.header}>
-       
           <Text style={styles.text1}>Mes coordonnées</Text>
         </View>
         <Text style={styles.text2}>Civilité</Text>
@@ -89,7 +89,7 @@ export default function CoordonneeScreen() {
          </View>
          <TextInput style={styles.input} onChangeText={(value)=>setPhone(value)} value={ phone } placeholder='Téléphone' placeholderTextColor='#999999'/>
         </View>
-        <TouchableOpacity onPress={() => handleSubmit1()} style={styles.button} activeOpacity={0.8}>
+        <TouchableOpacity onPress={() => handleSubmit()} style={styles.button} activeOpacity={0.8}>
         <Text style={styles.textButton}>Sauvegarder</Text>
         </TouchableOpacity>
       </KeyboardAvoidingView>
@@ -111,9 +111,10 @@ const styles = StyleSheet.create({
     fontSize: 36,
     color: '#FFFFFF',
     marginTop: 30,
+    width: 140,
   },
   text1: {
-    fontSize: 20,
+    fontSize: 25,
     color: 'white',
     fontWeight: 'bold',
     marginTop: 30
