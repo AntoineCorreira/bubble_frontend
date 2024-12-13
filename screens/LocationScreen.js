@@ -2,12 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { choosedEstablishment } from '../reducers/establishment';
 import * as Font from 'expo-font';
-import { View, Text, StyleSheet, ImageBackground, TextInput, Image, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, TextInput, Image, ScrollView, TouchableOpacity, Dimensions, Alert } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
-
-
 
 // Fonction pour calculer la distance entre deux points GPS
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -25,54 +23,76 @@ const LocationScreen = ({ navigation, route }) => {
     const [location, setLocation] = useState(null);
     const [selectedEstablishment, setSelectedEstablishment] = useState(null);
     const [establishmentsData, setEstablishmentsData] = useState([]);
+    const [locationPermission, setLocationPermission] = useState(false);
     const searchCriteria = useSelector(state => state.searchCriteria);
 
     useEffect(() => {
-        (async () => {
+        const loadFonts = async () => {
+            await Font.loadAsync({
+                'Lily Script One': require('../assets/fonts/LilyScriptOne-Regular.ttf'),
+            });
+        };
+        loadFonts();
+    }, []);
+
+    useEffect(() => {
+        const requestLocationPermission = async () => {
             const { status } = await Location.requestForegroundPermissionsAsync();
             if (status === 'granted') {
                 const locationData = await Location.getCurrentPositionAsync({});
                 setLocation(locationData.coords);
-                console.log('Location:', locationData.coords);
+                setLocationPermission(true);
             } else {
                 console.warn('Location permissions not granted');
+                setLocationPermission(false);
             }
-        })();
+        };
+        requestLocationPermission();
     }, []);
 
     useEffect(() => {
-        Font.loadAsync({
-            'Lily Script One': require('../assets/fonts/LilyScriptOne-Regular.ttf'),
-        });
-
         const criteria = route.params?.searchCriteria || searchCriteria;
-        console.log('Critères de recherche dans LocationScreen:', criteria);
-
+        console.log('Critères de recherche reçus:', criteria);
+      
         const queryParts = [];
         if (criteria.city) {
-            queryParts.push(`city=${encodeURIComponent(criteria.city)}`);
+          queryParts.push(`city=${encodeURIComponent(criteria.city)}`);
         }
-        if (criteria.period && criteria.period !== ' - ') {
-            queryParts.push(`period=${encodeURIComponent(criteria.period)}`);
+        if (criteria.day && criteria.day.length > 0) {
+          queryParts.push(`day=${encodeURIComponent(criteria.day.join(','))}`);
         }
         if (criteria.type) {
-            queryParts.push(`type=${encodeURIComponent(criteria.type)}`);
+          queryParts.push(`type=${encodeURIComponent(criteria.type)}`);
         }
         const query = queryParts.join('&');
-        console.log('Requête URL:', query);
-
+        console.log('Requête URL construite:', query);
+      
         fetch(`http://192.168.1.129:3000/establishments?${query}`)
-            .then(response => response.json())
-            .then(data => {
-                console.log('Réponse de l\'API:', data);
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
+            console.log('Réponse de l\'API:', data);
+            console.log('Type de data:', typeof data);
+            if (Array.isArray(data.establishments)) {
+              console.log('Établissements trouvés:', data.establishments.length); 
+              if (data.establishments.length === 0) {
+                Alert.alert("Aucun établissement", "Aucun établissement n'est ouvert aux dates sélectionnées.");
+              } else {
                 setEstablishmentsData(data.establishments);
-            })
-            .catch(error => {
-                console.error('Error fetching establishments:', error);
-            });
-    }, [route.params?.searchCriteria, searchCriteria]);
-
-    const criteria = route.params?.searchCriteria || searchCriteria; // Assurez-vous que `criteria` est bien défini
+              }
+            } else {
+              console.error('Format de données inattendu:', data);
+              Alert.alert("Erreur", "Format de données inattendu.");
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching establishments:', error);
+          });
+      }, [route.params?.searchCriteria, searchCriteria]);
 
     const addEstablishmentToStore = (newEstablishment) => {
         dispatch(choosedEstablishment({
@@ -87,90 +107,75 @@ const LocationScreen = ({ navigation, route }) => {
             image: newEstablishment.image,
             schedules: newEstablishment.schedules,
             capacity: newEstablishment.capacity,
-            type: newEstablishment.type,
         }));
         navigation.navigate('Establishment');
     };
 
+    const isValidLocation = (latitude, longitude) => {
+        return latitude && longitude && !isNaN(latitude) && !isNaN(longitude);
+    };
+
     // Préparer la liste des établissements avec leurs distances depuis la position actuelle
     const establishmentList = location
-        ? establishmentsData
-            .filter(establishment => !criteria.city || establishment.city.toLowerCase() === criteria.city.toLowerCase()) // Filtrage par ville
-            .map((establishment, i) => {
-                // Calculer la distance entre l'utilisateur et chaque établissement
-                const distance = calculateDistance(
+    ? establishmentsData
+        .filter(establishment => 
+            (!searchCriteria.city || establishment.city.toLowerCase() === searchCriteria.city.toLowerCase()) &&
+            (!searchCriteria.day || establishment.schedules.some(schedule => searchCriteria.day.includes(schedule.day)))
+        )
+        .map((establishment, index) => {
+            const distance = isValidLocation(establishment.latitude, establishment.longitude)
+                ? calculateDistance(
                     location.latitude,
                     location.longitude,
                     establishment.latitude,
                     establishment.longitude
-                );
-                return { ...establishment, distance, i }; // Ajouter la distance et l'index aux données
-            })
-            .sort((a, b) => a.distance - b.distance) // Trier par distance croissante
-            .map((establishment, i) => (
-                <View key={i} style={styles.establishmentItem}>
-                    <Image source={{ uri: establishment.image }} style={styles.establishmentImage} />
-                    <View style={styles.description}>
-                        <View style={styles.nameAndDistance}>
-                            <Text style={styles.itemName}>{establishment.name}</Text>
-                            <Text style={styles.distanceText}>
-                                {establishment.distance.toFixed(2)} km
-                            </Text>
-                        </View>
-                        <Text style={styles.itemDescription}>{establishment.description}</Text>
+                )
+                : 0;
+
+            // Créer une clé unique avec fallback en cas d'absence de `id` ou `name`
+            const key = establishment.id && establishment.name
+                ? `${establishment.id}-${establishment.name}`
+                : `fallback-key-${index}`;
+
+            return { ...establishment, distance, key }; // Ajout de la distance et de la clé unique
+        })
+        .sort((a, b) => a.distance - b.distance) // Tri par distance croissante
+        .map((establishment) => (
+            <View key={establishment.key} style={styles.establishmentItem}>  
+                <Image source={{ uri: establishment.image }} style={styles.establishmentImage} />
+                <View style={styles.description}>
+                    <View style={styles.nameAndDistance}>
+                        <Text style={styles.itemName}>{establishment.name}</Text>
+                        <Text style={styles.distanceText}>
+                            {establishment.distance.toFixed(2)} km
+                        </Text>
                     </View>
-                    <FontAwesome name="plus-circle" size={30} color="#98B9F2" onPress={() => {addEstablishmentToStore(establishment)}}/>
+                    <Text style={styles.itemDescription}>{establishment.description}</Text>
                 </View>
-            ))
-        : null; // Ne pas afficher la liste si location est null
-
-
-    // const establishmentList = location
-    //  ? establishmentsData
-    //      .map((establishment, i) => {
-
-    //          const distance = calculateDistance(
-    //              location.latitude,
-    //              location.longitude,
-    //              establishment.latitude,
-    //              establishment.longitude
-    //          );
-    //          return {...establishment, distance, i}; 
-    //      })
-    //      .sort((a, b) => a.distance - b.distance) 
-    //      .map((establishment, i) => (
-    //          <View key={i} style={styles.establishmentItem}>
-    //              <Image
-    //                  source={{ uri: establishment.image }}
-    //                  style={styles.establishmentImage}
-    //              />
-    //              <View style={styles.description}>
-    //                  <View style={styles.nameAndDistance}>
-    //                      <Text style={styles.itemName}>{establishment.name}</Text>
-    //                      <Text style={styles.distanceText}>
-    //                          {establishment.distance.toFixed(2)} km
-    //                      </Text>
-    //                  </View>
-    //                  <Text style={styles.itemDescription}>
-    //                      {establishment.description}
-    //                  </Text>
-    //              </View>
-    //              <FontAwesome name="plus-circle" size={30} color="#98B9F2" onPress={() => {addEstablishmentToStore(establishment)}} />
-    //          </View>
-    //      ))
-    //  : null;  
+                <FontAwesome name="plus-circle" size={30} color="#98B9F2" onPress={() => { addEstablishmentToStore(establishment) }} />
+            </View>
+        ))
+    : null;
 
     const mapMarkers = location
         ? establishmentsData.map((establishment, index) => {
-            const distance = calculateDistance(
-                location.latitude,
-                location.longitude,
-                establishment.latitude,
-                establishment.longitude
-            );
+            const distance = isValidLocation(establishment.latitude, establishment.longitude)
+                ? calculateDistance(
+                    location.latitude,
+                    location.longitude,
+                    establishment.latitude,
+                    establishment.longitude
+                )
+                : 0;
+
+            // Créer une clé unique pour chaque marqueur
+            const markerKey = establishment.id
+                ? establishment.id.toString()
+                : `marker-fallback-key-${index}`;
+
             return (
                 <Marker
-                    key={index}
+                    key={markerKey}
                     coordinate={{
                         latitude: establishment.latitude,
                         longitude: establishment.longitude,
@@ -194,7 +199,7 @@ const LocationScreen = ({ navigation, route }) => {
                         style={styles.input}
                         placeholder="City . Period . Type"
                         placeholderTextColor="#999999"
-                        onPress={() => navigation.navigate('Filter')}
+                        onFocus={() => navigation.navigate('Filter')}
                     />
                     <FontAwesome name="search" size={20} color="#999999" style={styles.icon} />
                 </View>
@@ -259,6 +264,8 @@ const LocationScreen = ({ navigation, route }) => {
         </ImageBackground>
     );
 };
+
+
 
 const styles = StyleSheet.create({
     background: {
