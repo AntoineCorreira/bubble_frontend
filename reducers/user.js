@@ -12,7 +12,7 @@ const initialState = {
   zip: null,
   phone: null,
   type: null,
-  children: null,
+  children: [],
 },
 };
 
