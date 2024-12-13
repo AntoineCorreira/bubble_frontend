@@ -8,7 +8,7 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import user from './reducers/user';
 import searchCriteria from './reducers/searchCriteria'; // Importer searchCriteria
-import establishment from './reducers/establishment'; // Importer searchCriteria
+import establishment from './reducers/establishment'; // Importer establishment
 
 import LoginScreen from './screens/LoginScreen';
 import CoordonneeScreen from './screens/CoordonneeScreen';
@@ -24,7 +24,7 @@ const store = configureStore({
   reducer: { 
     user,
     searchCriteria,
-    establishment, // Ajouter le réducteur ici
+    establishment,
   },
 });
 
@@ -97,7 +97,7 @@ export default function App() {
           <Stack.Screen name="Location" component={LocationScreen} />
           <Stack.Screen name="Info" component={CoordonneeScreen} />
           <Stack.Screen name="Filter" component={FilterScreen} />
-          <Stack.Screen name="Establishment" component={EstablishmentScreen} />
+          <Stack.Screen name="Establishment" component={EstablishmentScreen}/>
           <Stack.Screen name="TabNavigator" component={TabNavigator} />
         </Stack.Navigator>
       </NavigationContainer>

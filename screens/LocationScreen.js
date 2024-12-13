@@ -23,6 +23,8 @@ const LocationScreen = ({ navigation, route }) => {
     const [location, setLocation] = useState(null);
     const [selectedEstablishment, setSelectedEstablishment] = useState(null);
     const [establishmentsData, setEstablishmentsData] = useState([]);
+    // const [displayedEstablishments, setDisplayedEstablishments] = useState([]);  // Nouvel état pour les établissements affichés
+    // const [currentIndex, setCurrentIndex] = useState(0);  // Index pour les établissements à afficher
     const searchCriteria = useSelector(state => state.searchCriteria);
 
     useEffect(() => {
@@ -59,7 +61,7 @@ const LocationScreen = ({ navigation, route }) => {
         const query = queryParts.join('&');
         console.log('Requête URL:', query);
 
-        fetch(`http://192.168.1.53:3000/establishments?${query}`)
+        fetch(`http://192.168.1.154:3000/establishments?${query}`)
             .then(response => response.json())
             .then(data => {
                 console.log('Réponse de l\'API:', data);
@@ -72,6 +74,13 @@ const LocationScreen = ({ navigation, route }) => {
 
     const criteria = route.params?.searchCriteria || searchCriteria; // Assurez-vous que `criteria` est bien défini
 
+    // const loadMoreEstablishments = () => {
+    //     const nextIndex = currentIndex + 10;
+    //     const newEstablishments = establishmentsData.slice(nextIndex, nextIndex + 10);
+    //     setDisplayedEstablishments([...displayedEstablishments, ...newEstablishments]);
+    //     setCurrentIndex(nextIndex);  // Mettre à jour l'index pour les prochaines données
+    // };
+
     const addEstablishmentToStore = (newEstablishment) => {
         dispatch(choosedEstablishment({
             name: newEstablishment.name,
@@ -83,6 +92,7 @@ const LocationScreen = ({ navigation, route }) => {
             phone: newEstablishment.phone,
             mail: newEstablishment.mail,
             image: newEstablishment.image,
+            gallery: newEstablishment.gallery,
             schedules: newEstablishment.schedules,
             capacity: newEstablishment.capacity,
             type: newEstablishment.type,
@@ -110,53 +120,25 @@ const LocationScreen = ({ navigation, route }) => {
                     <Image source={{ uri: establishment.image }} style={styles.establishmentImage} />
                     <View style={styles.description}>
                         <View style={styles.nameAndDistance}>
-                            <Text style={styles.itemName}>{establishment.name}</Text>
+                            <Text style={styles.itemName}>
+                                {establishment.name.length > 50
+                                ? establishment.name.slice(0, 50) + '...'
+                                : establishment.name}
+                                </Text>
                             <Text style={styles.distanceText}>
                                 {establishment.distance.toFixed(2)} km
                             </Text>
                         </View>
-                        <Text style={styles.itemDescription}>{establishment.description}</Text>
+                        <Text style={styles.itemDescription}>
+                            {establishment.description.length > 60
+                                ? establishment.description.slice(0, 60) + '...'
+                                : establishment.description}
+                                </Text>
                     </View>
                     <FontAwesome name="plus-circle" size={30} color="#98B9F2" onPress={() => {addEstablishmentToStore(establishment)}}/>
                 </View>
             ))
         : null; // Ne pas afficher la liste si location est null
-
-
-    // const establishmentList = location
-    //  ? establishmentsData
-    //      .map((establishment, i) => {
-
-    //          const distance = calculateDistance(
-    //              location.latitude,
-    //              location.longitude,
-    //              establishment.latitude,
-    //              establishment.longitude
-    //          );
-    //          return {...establishment, distance, i}; 
-    //      })
-    //      .sort((a, b) => a.distance - b.distance) 
-    //      .map((establishment, i) => (
-    //          <View key={i} style={styles.establishmentItem}>
-    //              <Image
-    //                  source={{ uri: establishment.image }}
-    //                  style={styles.establishmentImage}
-    //              />
-    //              <View style={styles.description}>
-    //                  <View style={styles.nameAndDistance}>
-    //                      <Text style={styles.itemName}>{establishment.name}</Text>
-    //                      <Text style={styles.distanceText}>
-    //                          {establishment.distance.toFixed(2)} km
-    //                      </Text>
-    //                  </View>
-    //                  <Text style={styles.itemDescription}>
-    //                      {establishment.description}
-    //                  </Text>
-    //              </View>
-    //              <FontAwesome name="plus-circle" size={30} color="#98B9F2" onPress={() => {addEstablishmentToStore(establishment)}} />
-    //          </View>
-    //      ))
-    //  : null;  
 
     const mapMarkers = location
         ? establishmentsData.map((establishment, index) => {
@@ -219,6 +201,9 @@ const LocationScreen = ({ navigation, route }) => {
                 {viewMode === 'list' ? (
                     <ScrollView contentContainerStyle={styles.establishmentContainer}>
                         {establishmentList}
+                        {/* <TouchableOpacity style={styles.loadMoreButton} onPress={loadMoreEstablishments}>
+                            <Text style={styles.loadMoreText}>Voir plus</Text>
+                        </TouchableOpacity> */}
                     </ScrollView>
                 ) : (
                     <View style={styles.mapContainer}>
@@ -269,6 +254,7 @@ const styles = StyleSheet.create({
         fontSize: 36,
         color: '#FFFFFF',
         marginTop: 30,
+        width: 140,
     },
     content: {
         flex: 1,
@@ -289,7 +275,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginVertical: 10,
+        marginVertical: 20,
     },
     buttonList: {
         backgroundColor: '#FFFFFF',
@@ -335,6 +321,19 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         alignItems: 'center',
     },
+    loadMoreButton: {
+        backgroundColor: '#EABBFF',
+        padding: 10,
+        marginTop: 10,
+        borderRadius: 5,
+        borderWidth: 2,
+        borderColor: "#FFFFFF"
+    },
+    loadMoreText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        textAlign: 'center',
+    },
     establishmentItem: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -358,11 +357,13 @@ const styles = StyleSheet.create({
     },
     nameAndDistance: {
         flexDirection: 'row',
-        width: 220,
+        width: 225,
         justifyContent: 'space-between',
+        alignItems: 'center',
     },
     itemName: {
         fontSize: 16,
+        width: 160,
         fontWeight: 'bold',
     },
     itemDescription: {
