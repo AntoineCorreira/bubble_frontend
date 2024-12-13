@@ -2,10 +2,7 @@ import { StyleSheet, Text, View, TouchableOpacity, ImageBackground, TextInput, K
 // import { Navigation } from '@react-navigation/native';
 import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { login, logout} from '../reducers/user';
-
-
-
+import { login } from '../reducers/user';
 export default function LoginScreen({ navigation }) {
    //pour chaques champ un hook d etat
     const [emailSignup, setEmailSignup] = useState('');
@@ -16,9 +13,7 @@ export default function LoginScreen({ navigation }) {
     const [emailError, setEmailError] = useState(false);
     const [emailError2, setEmailError2] = useState(false);
 
-    const user = useSelector((state)=>state.user.value)
-    console.log(user)
-    const dispatch = useDispatch()
+    const dispatch = useDispatch();
 
      // fonction pour le signup
     const handleSubmit = () => {
@@ -35,15 +30,15 @@ export default function LoginScreen({ navigation }) {
               console.log(data)
                 if(data.result){
                     dispatch(login({email: emailSignup, token : data.token}))
-                    navigation.navigate('Info')
-                    setEmailSignup(emailSignup === '')
-                    setPasswordSignup(passwordSignup === '')   
+                    navigation.navigate('Info');
+                    setEmailSignup(emailSignup === '');
+                    setPasswordSignup(passwordSignup === '');   
                 }
             })
          }else{
            setEmailError(true)
          }
-    }
+    };
 
     //fonction pour le signin
     const handleLogin = () => {
@@ -55,18 +50,19 @@ export default function LoginScreen({ navigation }) {
               })
                 .then(response => response.json())
                 .then(data=>{
-                  console.log(data)
+
                 if(data.result){
-                dispatch(login({email: emailSignup, token : data.token}))
-                navigation.navigate('Info')
-                setEmailSignin(emailSignin === '')
-                setPasswordSignin(passwordSignin === '')
-                        //navigation.navigate('TabNavigator', { screen: 'Search' })
+                dispatch(login({email: emailSignup, token : data.token}));
+                navigation.navigate('Enfant');
+                //navigation.navigate('TabNavigator', { screen: 'Search' });
+                setEmailSignin(emailSignin === '');
+                setPasswordSignin(passwordSignin === '');
+  
                 }else{ 
                     setEmailError2(true)
                 }
                 })
-            }
+            };
     
 
     return (
@@ -126,6 +122,7 @@ const styles = StyleSheet.create({
     fontSize: 36,
     color: '#FFFFFF',
     marginTop: 30,
+    width: 140,
   },
   logoutContainer: {
     justifyContent: 'center',

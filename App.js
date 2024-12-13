@@ -96,6 +96,7 @@ export default function App() {
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Location" component={LocationScreen} />
           <Stack.Screen name="Info" component={CoordonneeScreen} />
+          <Stack.Screen name="Enfant" component={FamilyScreen} />
           <Stack.Screen name="Filter" component={FilterScreen} />
           <Stack.Screen name="Establishment" component={EstablishmentScreen} />
           <Stack.Screen name="TabNavigator" component={TabNavigator} />
