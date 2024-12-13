@@ -13,10 +13,20 @@ import {
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { Calendar } from 'react-native-calendars';
 import { CheckBox } from 'react-native-elements';
-import { useDispatch, useSelector } from 'react-redux'; // Import Redux
+import { useDispatch, useSelector } from 'react-redux';
 import { setSearchCriteria } from '../reducers/searchCriteria';
 
+// Définir la fonction getDayOfWeek
+const getDayOfWeek = (dateString) => {
+  const date = new Date(dateString);
+  const daysOfWeek = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+  return daysOfWeek[date.getDay()];
+};
+
 const FilterScreen = ({ navigation, background = require('../assets/background.png') }) => {
+  const userId = useSelector(state => state.user.id); // Accéder à l'ID de l'utilisateur connecté
+  const dispatch = useDispatch();
+
   const [selectedMenu, setSelectedMenu] = useState('Ponctuelle');
   const [search, setSearch] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
@@ -29,15 +39,12 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
   const [cities, setCities] = useState([]);
   const [establishmentsData, setEstablishmentsData] = useState([]);
   const [selectedDays, setSelectedDays] = useState([]);
-  const [children, setChildren] = useState([]); // Liste des enfants initialisée à un tableau vide
-  const [selectedChildren, setSelectedChildren] = useState([]); // Enfants sélectionnés
-
-  const dispatch = useDispatch();
-  const userId = useSelector(state => state.user.id); // Accéder à l'ID de l'utilisateur connecté
+  const [children, setChildren] = useState([]);
+  const [selectedChildren, setSelectedChildren] = useState([]);
 
   useEffect(() => {
     if (!selectedCity) {
-      fetch('http://192.168.1.129:3000/establishments/city')
+      fetch('http://192.168.1.154:3000/establishments/city')
         .then(response => response.json())
         .then(data => setCities(data))
         .catch(error => {
@@ -48,7 +55,7 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
   }, [selectedCity]);
 
   const handleSliderClick = () => {
-    fetch('http://192.168.1.129:3000/establishments/type')
+    fetch('http://192.168.1.154:3000/establishments/type')
       .then(response => response.json())
       .then(data => {
         setTypesOfCare(data);
@@ -86,12 +93,15 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
       days: daysOfWeek.join(', '),
       type: selectedTypes.join(', '),
       children: selectedChildren.join(', '),
+      startDate: selectedStartDate,
+      endDate: selectedEndDate,
     };
 
     console.log('Critères enregistrés:', criteria);
 
     dispatch(setSearchCriteria(criteria));
     setModalVisible(false); // Fermer la modale après l'enregistrement
+    setModalChildrenVisible(false); // Fermer la modale des enfants après l'enregistrement
   };
 
   const handleSubmit = () => {
@@ -102,27 +112,31 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
       days: daysOfWeek.join(', '),
       type: selectedTypes.join(', '),
       children: selectedChildren.join(', '),
+      startDate: selectedStartDate,
+      endDate: selectedEndDate,
     };
 
     console.log('Critères envoyés:', criteria);
 
-    fetch(`http://192.168.1.129:3000/establishments?city=${encodeURIComponent(criteria.city)}&days=${encodeURIComponent(criteria.days)}&type=${encodeURIComponent(criteria.type)}&children=${encodeURIComponent(criteria.children)}`)
-      .then(response => response.json())
+    fetch(`http://192.168.1.154:3000/establishments?city=${encodeURIComponent(criteria.city)}&days=${encodeURIComponent(criteria.days)}&type=${encodeURIComponent(criteria.type)}&children=${encodeURIComponent(criteria.children)}`)
+      .then(response => {
+        if (!response.ok) {
+          console.error('Erreur dans la réponse:', response);
+          return response.text().then(text => { throw new Error(text) });
+        }
+        return response.json();
+      })
       .then(data => {
         console.log('Données reçues du backend:', data);
 
-        // Vérifier si des établissements ont été renvoyés
         if (data && data.establishments && Array.isArray(data.establishments)) {
           if (data.establishments.length === 0) {
-            // Si aucun établissement n'est trouvé, afficher une alerte
             Alert.alert("Aucun établissement", "Aucun établissement n'est ouvert aux dates sélectionnées.");
           } else {
-            // Si des établissements sont trouvés, les afficher sans alerte
             console.log('Établissements disponibles:', data.establishments);
             setEstablishmentsData(data.establishments);
           }
         } else {
-          // En cas de données inattendues ou d'erreur
           console.error('Format de données inattendu ou établissements non définis:', data);
           Alert.alert("Erreur", "Format de données inattendu ou établissements non définis.");
         }
@@ -134,10 +148,6 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
 
     dispatch(setSearchCriteria(criteria));
     navigation.navigate('Location');
-  };
-
-  const handleCloseModal = () => {
-    setModalVisible(false);
   };
 
   const handleDateChange = (day) => {
@@ -154,13 +164,13 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
   const getMarkedDates = () => {
     const markedDates = {};
     selectedDays.forEach(day => {
-      markedDates[day] = { selected: true, marked: true, customStyles: { container: { backgroundColor: '#EABBFF' }, text: { color: 'white' } } }; // Mise en surbrillance avec la couleur EABBFF
+      markedDates[day] = { selected: true, marked: true, customStyles: { container: { backgroundColor: '#EABBFF' }, text: { color: 'white' } } };
     });
     return markedDates;
   };
 
   const handleChildrenFetch = () => {
-    fetch(`http://192.168.1.129:3000/users/children?userId=${userId}`)
+    fetch(`http://192.168.1.154:3000/children?userId=${userId}`)
       .then(response => {
         if (!response.ok) {
           return response.text().then(text => { throw new Error(text) });
@@ -169,8 +179,8 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
       })
       .then(data => {
         console.log('Enfants récupérés :', data);
-        setChildren(data || []); // Mettre à jour la liste des enfants
-        setModalChildrenVisible(true); // Afficher la modale
+        setChildren(data || []);
+        setModalChildrenVisible(true);
       })
       .catch(error => {
         console.error('Erreur lors de la récupération des enfants:', error);
@@ -188,9 +198,14 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
     });
   };
 
+  const handleCloseModal = () => {
+    setModalVisible(false);
+  };
+
   const handleCloseChildrenModal = () => {
     setModalChildrenVisible(false);
   };
+
 
   return (
     <ImageBackground source={background} style={styles.background}>
@@ -226,7 +241,6 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
           </TouchableOpacity>
         </View>
 
-        
         <View style={styles.calendarContainer}>
           <Calendar
             onDayPress={handleDateChange}
@@ -272,40 +286,38 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
           </View>
         </Modal>
 
-     {/* Modale pour les enfants */}
-<Modal
-  animationType="slide"
-  transparent={true}
-  visible={modalChildrenVisible}
-  onRequestClose={handleCloseChildrenModal}
->
-  <View style={styles.modalOverlay}>
-    <View style={styles.modalContainer}>
-      <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 20 }}>Mes enfants</Text>
-      <ScrollView style={{ marginBottom: 20 }}>
-        {children.map((child) => (
-          <CheckBox
-            key={child._id} 
-            title={<Text>{child.firstnamechild} {child.namechild}</Text>}
-            checked={selectedChildren.includes(child._id)}
-            onPress={() => handleChildrenCheckboxChange(child._id)}
-            containerStyle={{ backgroundColor: '#fff', borderWidth: 0 }}
-          />
-        ))}
-      </ScrollView>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 }}>
-        <TouchableOpacity style={{ flex: 1, padding: 10, backgroundColor: '#98B9F2', borderRadius: 5, marginRight: 10, alignItems: 'center' }} onPress={handleCloseChildrenModal}>
-          <Text style={{ fontSize: 18, color: '#fff' }}>Fermer</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={{ flex: 1, padding: 10, backgroundColor: '#EABBFF', borderRadius: 5, alignItems: 'center' }} onPress={handleSave}>
-          <Text style={{ fontSize: 18, color: '#fff' }}>Enregistrer</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  </View>
-</Modal>
-
-
+        {/* Modale pour les enfants */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalChildrenVisible}
+          onRequestClose={handleCloseChildrenModal}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 20 }}>Mes enfants</Text>
+              <ScrollView style={{ marginBottom: 20 }}>
+                {children.map((child) => (
+                  <CheckBox
+                    key={child._id}
+                    title={<Text>{child.firstnamechild} {child.namechild}</Text>}
+                    checked={selectedChildren.includes(child._id)}
+                    onPress={() => handleChildrenCheckboxChange(child._id)}
+                    containerStyle={{ backgroundColor: '#fff', borderWidth: 0 }}
+                  />
+                ))}
+              </ScrollView>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 }}>
+                <TouchableOpacity style={{ flex: 1, padding: 10, backgroundColor: '#98B9F2', borderRadius: 5, marginRight: 10, alignItems: 'center' }} onPress={handleCloseChildrenModal}>
+                  <Text style={{ fontSize: 18, color: '#fff' }}>Fermer</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={{ flex: 1, padding: 10, backgroundColor: '#EABBFF', borderRadius: 5, alignItems: 'center' }} onPress={handleSave}>
+                  <Text style={{ fontSize: 18, color: '#fff' }}>Enregistrer</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
@@ -319,6 +331,7 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
     </ImageBackground>
   );
 };
+
 
 const styles = StyleSheet.create({
   background: {
@@ -513,4 +526,3 @@ const styles = StyleSheet.create({
 
 
 export default FilterScreen;
-

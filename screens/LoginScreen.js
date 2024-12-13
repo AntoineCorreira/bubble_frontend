@@ -14,6 +14,8 @@ export default function LoginScreen({ navigation }) {
     const [emailError2, setEmailError2] = useState(false);
 
     const dispatch = useDispatch();
+    const user = useSelector((state) => state.user.value)
+    console.log(user);
 
      // fonction pour le signup
     const handleSubmit = () => {
@@ -27,7 +29,7 @@ export default function LoginScreen({ navigation }) {
             })
             .then(response => response.json())
             .then(data=>{
-              console.log(data)
+              console.log('Fetch SignUp :', data.token)
                 if(data.result){
                     dispatch(login({email: emailSignup, token : data.token}))
                     navigation.navigate('Info');
@@ -53,8 +55,8 @@ export default function LoginScreen({ navigation }) {
 
                 if(data.result){
                 dispatch(login({email: emailSignup, token : data.token}));
-                navigation.navigate('Enfant');
-                //navigation.navigate('TabNavigator', { screen: 'Search' });
+                // navigation.navigate('Enfant');
+                navigation.navigate('TabNavigator', { screen: 'Search' });
                 setEmailSignin(emailSignin === '');
                 setPasswordSignin(passwordSignin === '');
   
