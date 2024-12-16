@@ -13,10 +13,20 @@ import {
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { Calendar } from 'react-native-calendars';
 import { CheckBox } from 'react-native-elements';
-import { useDispatch, useSelector } from 'react-redux'; // Import Redux
+import { useDispatch, useSelector } from 'react-redux';
 import { setSearchCriteria } from '../reducers/searchCriteria';
 
+// Définir la fonction getDayOfWeek
+const getDaysOfWeek = (dateString) => {
+  const date = new Date(dateString);
+  const daysOfWeek = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+  return daysOfWeek[date.getDay()];
+};
+
 const FilterScreen = ({ navigation, background = require('../assets/background.png') }) => {
+  const userId = useSelector(state => state.user.id); // Accéder à l'ID de l'utilisateur connecté
+  const dispatch = useDispatch();
+
   const [selectedMenu, setSelectedMenu] = useState('Ponctuelle');
   const [search, setSearch] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
@@ -29,11 +39,8 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
   const [cities, setCities] = useState([]);
   const [establishmentsData, setEstablishmentsData] = useState([]);
   const [selectedDays, setSelectedDays] = useState([]);
-  const [children, setChildren] = useState([]); // Liste des enfants initialisée à un tableau vide
-  const [selectedChildren, setSelectedChildren] = useState([]); // Enfants sélectionnés
-
-  const dispatch = useDispatch();
-  const userId = useSelector(state => state.user.id); // Accéder à l'ID de l'utilisateur connecté
+  const [children, setChildren] = useState([]);
+  const [selectedChildren, setSelectedChildren] = useState([]);
 
   useEffect(() => {
     if (!selectedCity) {
@@ -80,7 +87,7 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
   };
 
   const handleSave = () => {
-    const daysOfWeek = selectedDays.map(date => getDayOfWeek(date));
+    const daysOfWeek = selectedDays.map(date => getDaysOfWeek(date));
     const criteria = {
       city: selectedCity,
       days: daysOfWeek.join(', '),
@@ -92,75 +99,116 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
 
     dispatch(setSearchCriteria(criteria));
     setModalVisible(false); // Fermer la modale après l'enregistrement
+    setModalChildrenVisible(false); // Fermer la modale des enfants après l'enregistrement
   };
 
   const handleSubmit = () => {
-    // Convertir les dates sélectionnées en jours de la semaine
-    const daysOfWeek = selectedDays.map(date => getDayOfWeek(date));
-    const criteria = {
-      city: selectedCity,
-      days: daysOfWeek.join(', '),
-      type: selectedTypes.join(', '),
-      children: selectedChildren.join(', '),
-    };
-
-    console.log('Critères envoyés:', criteria);
-
-    fetch(`http://192.168.1.129:3000/establishments?city=${encodeURIComponent(criteria.city)}&days=${encodeURIComponent(criteria.days)}&type=${encodeURIComponent(criteria.type)}&children=${encodeURIComponent(criteria.children)}`)
-      .then(response => response.json())
-      .then(data => {
-        console.log('Données reçues du backend:', data);
-
-        // Vérifier si des établissements ont été renvoyés
-        if (data && data.establishments && Array.isArray(data.establishments)) {
-          if (data.establishments.length === 0) {
-            // Si aucun établissement n'est trouvé, afficher une alerte
-            Alert.alert("Aucun établissement", "Aucun établissement n'est ouvert aux dates sélectionnées.");
-          } else {
-            // Si des établissements sont trouvés, les afficher sans alerte
-            console.log('Établissements disponibles:', data.establishments);
-            setEstablishmentsData(data.establishments);
+    // Vérifier si des dates ont été sélectionnées dans selectedDays
+    if (!selectedDays || selectedDays.length === 0) {
+      // Si aucune date n'est sélectionnée, redirection vers ObligatoryFilterScreen
+      console.log("Redirection vers ObligatoryFilterScreen : aucune date sélectionnée");
+      navigation.navigate('ObligatoryFilter');
+    } else {
+      // Si des dates sont sélectionnées, rediriger vers LocationScreen après récupération des établissements
+      console.log("Redirection vers LocationScreen : dates sélectionnées");
+  
+      // Convertir les dates sélectionnées en jours de la semaine
+      const daysOfWeek = selectedDays.map(date => getDaysOfWeek(date));
+  
+      // Afficher les jours de la semaine dans la console
+      console.log('Jours de la semaine obtenus :', daysOfWeek);
+  
+      const criteria = {
+        city: selectedCity,
+        days: daysOfWeek.join(', '),  // On envoie les jours sous forme de chaîne
+        type: selectedTypes.join(', '),
+        children: selectedChildren.join(', '),
+      };
+  
+      console.log('Critères envoyés:', criteria);
+  
+      // Faire le fetch pour récupérer les établissements selon les critères
+      fetch(`http://192.168.1.129:3000/establishments?city=${encodeURIComponent(criteria.city)}&days=${encodeURIComponent(criteria.days)}&type=${encodeURIComponent(criteria.type)}&children=${encodeURIComponent(criteria.children)}`)
+        .then(response => {
+          if (!response.ok) {
+            console.error('Erreur dans la réponse:', response);
+            return response.text().then(text => { throw new Error(text) });
           }
-        } else {
-          // En cas de données inattendues ou d'erreur
-          console.error('Format de données inattendu ou établissements non définis:', data);
-          Alert.alert("Erreur", "Format de données inattendu ou établissements non définis.");
-        }
-      })
-      .catch(error => {
-        console.error('Erreur lors de la récupération des établissements:', error);
-        Alert.alert("Erreur", "Impossible de récupérer les établissements.");
-      });
-
-    dispatch(setSearchCriteria(criteria));
-    navigation.navigate('Location');
+          return response.json();
+        })
+        .then(data => {
+          console.log('Données reçues du backend:', data);
+  
+          if (data && data.establishments && Array.isArray(data.establishments)) {
+            if (data.establishments.length === 0) {
+              Alert.alert("Aucun établissement", "Aucun établissement n'est ouvert aux dates sélectionnées.");
+            } else {
+              console.log('Établissements disponibles:', data.establishments);
+              setEstablishmentsData(data.establishments);
+            }
+          } else {
+            console.error('Format de données inattendu ou établissements non définis:', data);
+            Alert.alert("Erreur", "Format de données inattendu ou établissements non définis.");
+          }
+        })
+        .catch(error => {
+          console.error('Erreur lors de la récupération des établissements:', error);
+          Alert.alert("Erreur", "Impossible de récupérer les établissements.");
+        });
+  
+      // Enregistrer les critères de recherche dans le store (redux)
+      dispatch(setSearchCriteria(criteria));
+  
+      // Rediriger vers l'écran Location
+      navigation.navigate('Location');
+    }
   };
-
-  const handleCloseModal = () => {
-    setModalVisible(false);
-  };
+  
+  
+  
 
   const handleDateChange = (day) => {
     const dayString = day.dateString;
+  
+    // Afficher dans la console la date sélectionnée
+    console.log('Date sélectionnée:', dayString);
+    
+    // Mise à jour de selectedDays
     setSelectedDays(prevSelectedDays => {
       if (prevSelectedDays.includes(dayString)) {
-        return prevSelectedDays.filter(d => d !== dayString);
+        // Si la date est déjà sélectionnée, on la désélectionne
+        const newSelectedDays = prevSelectedDays.filter(d => d !== dayString);
+        console.log('Désélectionner la date:', dayString, 'Nouvelles dates:', newSelectedDays);
+        return newSelectedDays;
       } else {
-        return [...prevSelectedDays, dayString];
+        // Sinon, on l'ajoute à la sélection
+        const newSelectedDays = [...prevSelectedDays, dayString];
+        console.log('Sélectionner la date:', dayString, 'Nouvelles dates:', newSelectedDays);
+        return newSelectedDays;
       }
     });
   };
+  
+  
 
   const getMarkedDates = () => {
     const markedDates = {};
+  
     selectedDays.forEach(day => {
-      markedDates[day] = { selected: true, marked: true, customStyles: { container: { backgroundColor: '#EABBFF' }, text: { color: 'white' } } }; // Mise en surbrillance avec la couleur EABBFF
+      markedDates[day] = {
+        selected: true,
+        marked: true,
+        selectedColor: '#EABBFF', // Vous pouvez personnaliser la couleur de la sélection ici
+        selectedTextColor: 'white', // Vous pouvez personnaliser la couleur du texte ici
+      };
     });
+  
     return markedDates;
   };
+  
 
   const handleChildrenFetch = () => {
-    fetch(`http://192.168.1.129:3000/users/children?userId=${userId}`)
+    fetch(`http://192.168.1.129:3000/children?userId=${userId}`)
       .then(response => {
         if (!response.ok) {
           return response.text().then(text => { throw new Error(text) });
@@ -169,8 +217,8 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
       })
       .then(data => {
         console.log('Enfants récupérés :', data);
-        setChildren(data || []); // Mettre à jour la liste des enfants
-        setModalChildrenVisible(true); // Afficher la modale
+        setChildren(data || []);
+        setModalChildrenVisible(true);
       })
       .catch(error => {
         console.error('Erreur lors de la récupération des enfants:', error);
@@ -186,6 +234,10 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
         return [...prevSelectedChildren, childId];
       }
     });
+  };
+
+  const handleCloseModal = () => {
+    setModalVisible(false);
   };
 
   const handleCloseChildrenModal = () => {
@@ -226,7 +278,6 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
           </TouchableOpacity>
         </View>
 
-        
         <View style={styles.calendarContainer}>
           <Calendar
             onDayPress={handleDateChange}
@@ -264,7 +315,7 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
                 <TouchableOpacity style={{ flex: 1, padding: 10, backgroundColor: '#98B9F2', borderRadius: 5, marginRight: 10, alignItems: 'center' }} onPress={handleCloseModal}>
                   <Text style={{ fontSize: 18, color: '#fff' }}>Fermer</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={{ flex: 1, padding: 10, backgroundColor: '#EABBFF', borderRadius: 5, alignItems: 'center' }} onPress={handleSave}>
+                <TouchableOpacity style={{ flex: 1, padding: 10, backgroundColor: '#98B9F2', borderRadius: 5, marginLeft: 10, alignItems: 'center' }} onPress={handleSave}>
                   <Text style={{ fontSize: 18, color: '#fff' }}>Enregistrer</Text>
                 </TouchableOpacity>
               </View>
@@ -272,54 +323,49 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
           </View>
         </Modal>
 
-     {/* Modale pour les enfants */}
-<Modal
-  animationType="slide"
-  transparent={true}
-  visible={modalChildrenVisible}
-  onRequestClose={handleCloseChildrenModal}
->
-  <View style={styles.modalOverlay}>
-    <View style={styles.modalContainer}>
-      <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 20 }}>Mes enfants</Text>
-      <ScrollView style={{ marginBottom: 20 }}>
-        {children.map((child) => (
-          <CheckBox
-            key={child._id} 
-            title={<Text>{child.firstnamechild} {child.namechild}</Text>}
-            checked={selectedChildren.includes(child._id)}
-            onPress={() => handleChildrenCheckboxChange(child._id)}
-            containerStyle={{ backgroundColor: '#fff', borderWidth: 0 }}
-          />
-        ))}
-      </ScrollView>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 }}>
-        <TouchableOpacity style={{ flex: 1, padding: 10, backgroundColor: '#98B9F2', borderRadius: 5, marginRight: 10, alignItems: 'center' }} onPress={handleCloseChildrenModal}>
-          <Text style={{ fontSize: 18, color: '#fff' }}>Fermer</Text>
+        {/* Modale pour les enfants */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalChildrenVisible}
+          onRequestClose={handleCloseChildrenModal}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 20 }}>Sélectionner les enfants</Text>
+              <ScrollView style={{ marginBottom: 20 }}>
+                {children.map((child) => (
+                  <CheckBox
+                    key={child.id}
+                    title={<Text>{child.name}</Text>}
+                    checked={selectedChildren.includes(child.id)}
+                    onPress={() => handleChildrenCheckboxChange(child.id)}
+                    containerStyle={{ backgroundColor: '#fff', borderWidth: 0 }}
+                  />
+                ))}
+              </ScrollView>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 }}>
+                <TouchableOpacity style={{ flex: 1, padding: 10, backgroundColor: '#98B9F2', borderRadius: 5, marginRight: 10, alignItems: 'center' }} onPress={handleCloseChildrenModal}>
+                  <Text style={{ fontSize: 18, color: '#fff' }}>Fermer</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={{ flex: 1, padding: 10, backgroundColor: '#98B9F2', borderRadius: 5, marginLeft: 10, alignItems: 'center' }} onPress={handleSave}>
+                  <Text style={{ fontSize: 18, color: '#fff' }}>Enregistrer</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+          <Text style={styles.submitButtonText}>Chercher</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={{ flex: 1, padding: 10, backgroundColor: '#EABBFF', borderRadius: 5, alignItems: 'center' }} onPress={handleSave}>
-          <Text style={{ fontSize: 18, color: '#fff' }}>Enregistrer</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  </View>
-</Modal>
-
-
-
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
-            <Text style={styles.resetButtonText}>Réinitialiser</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-            <Text style={styles.submitButtonText}>Valider</Text>
-          </TouchableOpacity>
-        </View>
       </View>
     </ImageBackground>
   );
 };
 
+
+  
 const styles = StyleSheet.create({
   background: {
     flex: 1, // Prend tout l'espace disponible

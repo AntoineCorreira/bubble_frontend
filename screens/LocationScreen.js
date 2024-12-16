@@ -59,7 +59,7 @@ const LocationScreen = ({ navigation, route }) => {
           queryParts.push(`city=${encodeURIComponent(criteria.city)}`);
         }
         if (criteria.day && criteria.day.length > 0) {
-          queryParts.push(`day=${encodeURIComponent(criteria.day.join(','))}`);
+          queryParts.push(`days=${encodeURIComponent(criteria.day.join(','))}`);
         }
         if (criteria.type) {
           queryParts.push(`type=${encodeURIComponent(criteria.type)}`);
@@ -94,7 +94,7 @@ const LocationScreen = ({ navigation, route }) => {
           });
       }, [route.params?.searchCriteria, searchCriteria]);
 
-    const addEstablishmentToStore = (newEstablishment) => {
+      const addEstablishmentToStore = (newEstablishment) => {
         dispatch(choosedEstablishment({
             name: newEstablishment.name,
             description: newEstablishment.description,
@@ -108,8 +108,20 @@ const LocationScreen = ({ navigation, route }) => {
             schedules: newEstablishment.schedules,
             capacity: newEstablishment.capacity,
         }));
-        navigation.navigate('Establishment');
+    
+        // Extraire les critères de recherche
+        const { days } = searchCriteria;  // Assurez-vous que `searchCriteria` contient bien les dates sélectionnées
+        
+        if (!days || days.length === 0) {
+            // Si aucune date n'est sélectionnée, redirection vers l'écran des filtres obligatoires
+            navigation.navigate('ObligatoryFilter');
+        } else {
+            // Si une date est sélectionnée, on peut aller vers l'écran de l'établissement
+            navigation.navigate('Establishment', { establishment: newEstablishment });
+        }
     };
+    
+    
 
     const isValidLocation = (latitude, longitude) => {
         return latitude && longitude && !isNaN(latitude) && !isNaN(longitude);
@@ -264,8 +276,6 @@ const LocationScreen = ({ navigation, route }) => {
         </ImageBackground>
     );
 };
-
-
 
 const styles = StyleSheet.create({
     background: {
