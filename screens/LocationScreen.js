@@ -17,6 +17,8 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 
+const serveurIP = process.env.expo_public_serveur_IP
+
 const LocationScreen = ({ navigation, route }) => {
     const dispatch = useDispatch();
     const [viewMode, setViewMode] = useState('list');
@@ -67,7 +69,7 @@ const LocationScreen = ({ navigation, route }) => {
         const query = queryParts.join('&');
         // console.log('Requête URL construite:', query);
 
-        fetch(`http://192.168.1.154:3000/establishments?${query}`)
+        fetch(`http://${serveurIP}:3000/establishments?${query}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');

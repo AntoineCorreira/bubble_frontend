@@ -1,10 +1,12 @@
 import { ImageBackground, TouchableOpacity, StyleSheet, Text, View, KeyboardAvoidingView, Platform, TextInput } from 'react-native'// import de KeyboardAvoidingView et Platform pour probleme clavier qui cache input
-import React, { useEffect, useState } from 'react'
-
+import React, {  useState } from 'react'
+import { login } from '../reducers/user';
 //utilisation de redux useSelector pour recuperer le token pour le fetch
 import { useDispatch, useSelector } from 'react-redux';
 //import de la bibliotheque expo-checkbox
 import { Checkbox } from 'expo-checkbox';
+
+const serveurIP = process.env.expo_public_serveur_IP;
 
 //ajout du module navigation
 export default function CoordonneeScreen({navigation}) {
@@ -14,25 +16,26 @@ export default function CoordonneeScreen({navigation}) {
   const [civility, setCivility] = useState('');
   const [name, setName] = useState('');
   const [firstname, setFirstname] = useState('');
-  const [address, setAddress] = useState('');
+  const [adress, setAdress] = useState('');
   const [city, setCity] = useState('');
   const [zip, setZip] = useState('');
   const [phone, setPhone] = useState('');
   
 //utilisation du useSelector pour recuperer la valeur du token
   const user = useSelector((state)=>state.user.value)
-
+  const Dispatch= useDispatch()
 // creation de la fonction handleSubmit pour sauvegarder toutes les nouvelles données de l'utilisateur
      const handleSubmit = () => {
-     fetch('http://192.168.1.154:3000/users/addData', {
+     fetch(`http://${serveurIP}:3000/users/addData`, {
       method: 'POST',
       headers: {'Content-type' : 'application/json'},
-      body: JSON.stringify({ civility: civility, name: name, firstname: firstname, address: address, city: city, zip: zip, phone: phone, token : user.token })
+      body: JSON.stringify({ civility: civility, name: name, firstname: firstname, address: adress, city: city, zip: zip, phone: phone, token : user.token })
       })
       .then( response => response.json())
-      .then(data=>{
+      .then(data=>{ console.log('fetch addData',data.dataBdd.token)
         if(data.dataBdd.token){
           navigation.navigate('Enfant');
+          Dispatch(login({token : data.dataBdd.token, children : []}))
         }
       })
   }
@@ -81,9 +84,9 @@ export default function CoordonneeScreen({navigation}) {
         <View style={styles.inputContainer}>
         <TextInput style={styles.input} onChangeText={(value)=>setName(value)} value={ name } placeholder='Nom' placeholderTextColor='#999999'/>
         <TextInput style={styles.input} onChangeText={(value)=>setFirstname(value)} value={ firstname } placeholder='Prénom' placeholderTextColor='#999999'/>
-        <TextInput style={styles.input} onChangeText={(value)=>setAddress(value)} value={ address } placeholder='Adresse' placeholderTextColor='#999999'/>
+        <TextInput style={styles.input} onChangeText={(value)=>setAdress(value)} value={ adress } placeholder='Adresse' placeholderTextColor='#999999'/>
 
-         <View style={styles.addresseContainer}>
+         <View style={styles.adresseContainer}>
          <TextInput style={styles.ville} onChangeText={(value)=>setCity(value)} value={ city } placeholder='Ville' placeholderTextColor='#999999'/>
          <TextInput style={styles.cp} onChangeText={(value)=>setZip(value)} value={ zip } placeholder='Code Postal' placeholderTextColor='#999999'/>
          </View>
@@ -187,7 +190,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
   },
-  addresseContainer: {
+  adresseContainer: {
     flexDirection:'row',
   }
 });
