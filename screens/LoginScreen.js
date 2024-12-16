@@ -14,20 +14,22 @@ export default function LoginScreen({ navigation }) {
     const [emailError2, setEmailError2] = useState(false);
 
     const dispatch = useDispatch();
+    const user = useSelector((state) => state.user.value)
+    console.log(user);
 
      // fonction pour le signup
     const handleSubmit = () => {
          // creation d un pattern pour avoir le bon format d email.
          const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
          if(pattern.test( emailSignup)){
-            fetch(`http://192.168.1.129:3000/users/signup`, {
+            fetch('http://192.168.1.154:3000/users/signup', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({email: emailSignup, password : passwordSignup})
             })
             .then(response => response.json())
             .then(data=>{
-              console.log(data)
+              console.log('Fetch SignUp :', data.token)
                 if(data.result){
                     dispatch(login({email: emailSignup, token : data.token}))
                     navigation.navigate('Info');
@@ -43,7 +45,7 @@ export default function LoginScreen({ navigation }) {
     //fonction pour le signin
     const handleLogin = () => {
        
-            fetch(`http://192.168.1.129:3000/users/signin`, {
+            fetch('http://192.168.1.154:3000/users/signin', {
                 method: 'POST',
                 headers: {'Content-type' : 'application/json'},
                 body: JSON.stringify({ email: emailSignin, password : passwordSignin})
@@ -53,8 +55,8 @@ export default function LoginScreen({ navigation }) {
 
                 if(data.result){
                 dispatch(login({email: emailSignup, token : data.token}));
-                navigation.navigate('Enfant');
-                //navigation.navigate('TabNavigator', { screen: 'Search' });
+                // navigation.navigate('Enfant');
+                navigation.navigate('TabNavigator', { screen: 'Search' });
                 setEmailSignin(emailSignin === '');
                 setPasswordSignin(passwordSignin === '');
   

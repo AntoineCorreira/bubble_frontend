@@ -7,7 +7,7 @@ const initialState = {
   civility: null,
   name: null,
   firstname: null,
-  adress: null,
+  address: null,
   city: null,
   zip: null,
   phone: null,
@@ -27,7 +27,7 @@ export const nomDuReducerSlice = createSlice({
      state.value.civility = action.payload.civility,
      state.value.name = action.payload.name,
      state.value.firstname = action.payload.firstname,
-     state.value.adress = action.payload.adress,
+     state.value.address = action.payload.address,
      state.value.city = action.payload.city,
      state.value.zip = action.payload.zip,
      state.value.phone = action.payload.phone,
@@ -40,7 +40,7 @@ export const nomDuReducerSlice = createSlice({
      state.value.civility = null;
      state.value.name = null;
      state.value.firstname = null;
-     state.value.adress = null;
+     state.value.address = null;
      state.value.city = null;
      state.value.zip = null;
      state.value.phone = null;
@@ -50,5 +50,5 @@ export const nomDuReducerSlice = createSlice({
  },
 });
 
-export const { nomFonction, login, lougout } = nomDuReducerSlice.actions;
+export const { login, lougout } = nomDuReducerSlice.actions;
 export default nomDuReducerSlice.reducer;

@@ -22,7 +22,7 @@ export default function FamilyScreen({navigation}) {
   const [firstnameChild, setFirstnameChild] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [countChild, setCountChild] = useState(0)
-  console.log(countChild)
+  // console.log(countChild)
   // selecteur de type de creche
   const [selectedValue, setSelectedValue] = useState("");
   // toujours l utilisation de useSelector() pour s'identifié avec le token
@@ -30,7 +30,7 @@ export default function FamilyScreen({navigation}) {
   const dispatch = useDispatch();
   // creation de la fonction pour l ajout des données de l enfant grace a la route  POST/addChild
   const handleSubmit = () => {
-    fetch("http://192.168.1.53:3000/users/addChild", {
+    fetch("http://192.168.1.154:3000/users/addChild", {
       method: "POST",
       headers: { "Content-type": "application/json" },
       body: JSON.stringify({
@@ -50,7 +50,7 @@ export default function FamilyScreen({navigation}) {
               name: data.donnee.name,
               firstname: data.donnee.firstname,
               civility: data.donnee.civility,
-              adress: data.donnee.adress,
+              address: data.donnee.address,
               city: data.donnee.city,
               zip: data.donnee.zip,
               phone: data.donnee.phone,
@@ -62,7 +62,7 @@ export default function FamilyScreen({navigation}) {
   };
  // creation d une function pour compté les nombres d enfants pour affichage
  const count = () =>{
-  console.log("click")
+  // console.log("click")
    setCountChild(countChild + 1)
  }
   return (

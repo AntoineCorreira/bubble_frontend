@@ -25,7 +25,7 @@ const store = configureStore({
   reducer: { 
     user,
     searchCriteria,
-    establishment, 
+    establishment,
   },
 });
 
@@ -99,8 +99,7 @@ export default function App() {
           <Stack.Screen name="Info" component={CoordonneeScreen} />
           <Stack.Screen name="Enfant" component={FamilyScreen} />
           <Stack.Screen name="Filter" component={FilterScreen} />
-          <Stack.Screen name="ObligatoryFilter" component={ObligatoryFilterScreen} />
-          <Stack.Screen name="Establishment" component={EstablishmentScreen} />
+          <Stack.Screen name="Establishment" component={EstablishmentScreen}/>
           <Stack.Screen name="TabNavigator" component={TabNavigator} />
         </Stack.Navigator>
       </NavigationContainer>
