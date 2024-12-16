@@ -105,6 +105,7 @@ const LocationScreen = ({ navigation, route }) => {
             phone: newEstablishment.phone,
             mail: newEstablishment.mail,
             image: newEstablishment.image,
+            gallery: newEstablishment.gallery,
             schedules: newEstablishment.schedules,
             capacity: newEstablishment.capacity,
         }));
@@ -129,33 +130,34 @@ const LocationScreen = ({ navigation, route }) => {
                     location.longitude,
                     establishment.latitude,
                     establishment.longitude
-                )
-                : 0;
-
-            // Créer une clé unique avec fallback en cas d'absence de `id` ou `name`
-            const key = establishment.id && establishment.name
-                ? `${establishment.id}-${establishment.name}`
-                : `fallback-key-${index}`;
-
-            return { ...establishment, distance, key }; // Ajout de la distance et de la clé unique
-        })
-        .sort((a, b) => a.distance - b.distance) // Tri par distance croissante
-        .map((establishment) => (
-            <View key={establishment.key} style={styles.establishmentItem}>  
-                <Image source={{ uri: establishment.image }} style={styles.establishmentImage} />
-                <View style={styles.description}>
-                    <View style={styles.nameAndDistance}>
-                        <Text style={styles.itemName}>{establishment.name}</Text>
-                        <Text style={styles.distanceText}>
-                            {establishment.distance.toFixed(2)} km
-                        </Text>
+                );
+                return { ...establishment, distance, i }; // Ajouter la distance et l'index aux données
+            })
+            .sort((a, b) => a.distance - b.distance) // Trier par distance croissante
+            .map((establishment, i) => (
+                <View key={i} style={styles.establishmentItem}>
+                    <Image source={{ uri: establishment.image }} style={styles.establishmentImage} />
+                    <View style={styles.description}>
+                        <View style={styles.nameAndDistance}>
+                            <Text style={styles.itemName}>
+                                {establishment.name.length > 50
+                                ? establishment.name.slice(0, 50) + '...'
+                                : establishment.name}
+                                </Text>
+                            <Text style={styles.distanceText}>
+                                {establishment.distance.toFixed(2)} km
+                            </Text>
+                        </View>
+                        <Text style={styles.itemDescription}>
+                            {establishment.description.length > 60
+                                ? establishment.description.slice(0, 60) + '...'
+                                : establishment.description}
+                                </Text>
                     </View>
-                    <Text style={styles.itemDescription}>{establishment.description}</Text>
+                    <FontAwesome name="plus-circle" size={30} color="#98B9F2" onPress={() => {addEstablishmentToStore(establishment)}}/>
                 </View>
-                <FontAwesome name="plus-circle" size={30} color="#98B9F2" onPress={() => { addEstablishmentToStore(establishment) }} />
-            </View>
-        ))
-    : null;
+            ))
+        : null; // Ne pas afficher la liste si location est null
 
     const mapMarkers = location
         ? establishmentsData.map((establishment, index) => {
@@ -226,6 +228,9 @@ const LocationScreen = ({ navigation, route }) => {
                 {viewMode === 'list' ? (
                     <ScrollView contentContainerStyle={styles.establishmentContainer}>
                         {establishmentList}
+                        {/* <TouchableOpacity style={styles.loadMoreButton} onPress={loadMoreEstablishments}>
+                            <Text style={styles.loadMoreText}>Voir plus</Text>
+                        </TouchableOpacity> */}
                     </ScrollView>
                 ) : (
                     <View style={styles.mapContainer}>
@@ -278,6 +283,7 @@ const styles = StyleSheet.create({
         fontSize: 36,
         color: '#FFFFFF',
         marginTop: 30,
+        width: 140,
     },
     content: {
         flex: 1,
@@ -298,7 +304,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginVertical: 10,
+        marginVertical: 20,
     },
     buttonList: {
         backgroundColor: '#FFFFFF',
@@ -344,6 +350,19 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         alignItems: 'center',
     },
+    loadMoreButton: {
+        backgroundColor: '#EABBFF',
+        padding: 10,
+        marginTop: 10,
+        borderRadius: 5,
+        borderWidth: 2,
+        borderColor: "#FFFFFF"
+    },
+    loadMoreText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        textAlign: 'center',
+    },
     establishmentItem: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -367,11 +386,13 @@ const styles = StyleSheet.create({
     },
     nameAndDistance: {
         flexDirection: 'row',
-        width: 220,
+        width: 225,
         justifyContent: 'space-between',
+        alignItems: 'center',
     },
     itemName: {
         fontSize: 16,
+        width: 160,
         fontWeight: 'bold',
     },
     itemDescription: {

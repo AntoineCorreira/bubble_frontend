@@ -11,6 +11,7 @@ const initialState = {
         phone: null,
         mail: null,
         image: null,
+        gallery: [],
         schedules: [],
         capacity: null,
         type: null,
@@ -23,7 +24,7 @@ export const establishmentSlice = createSlice({
   reducers: {
     choosedEstablishment: (state, action) => {
       state.value.name = action.payload.name;
-      state.value.description = action.payload.descrption;
+      state.value.description = action.payload.description;
       state.value.type = action.payload.type;
       state.value.address = action.payload.address;
       state.value.city = action.payload.city;
@@ -31,6 +32,7 @@ export const establishmentSlice = createSlice({
       state.value.phone = action.payload.phone;
       state.value.mail = action.payload.mail;
       state.value.image = action.payload.image;
+      state.value.gallery = action.payload.gallery;
       state.value.schedules = action.payload.schedules;
       state.value.capacity = action.payload.capacity;
       state.value.type = action.payload.type;
