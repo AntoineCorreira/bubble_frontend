@@ -24,7 +24,7 @@ export default function CoordonneeScreen({navigation}) {
 
 // creation de la fonction handleSubmit pour sauvegarder toutes les nouvelles données de l'utilisateur
      const handleSubmit = () => {
-     fetch('http://192.168.1.53:3000/users/addData', {
+     fetch('http://192.168.1.154:3000/users/addData', {
       method: 'POST',
       headers: {'Content-type' : 'application/json'},
       body: JSON.stringify({ civility: civility, name: name, firstname: firstname, address: adress, city: city, zip: zip, phone: phone, token : user.token })

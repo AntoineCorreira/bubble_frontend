@@ -67,7 +67,7 @@ const LocationScreen = ({ navigation, route }) => {
         const query = queryParts.join('&');
         console.log('Requête URL construite:', query);
       
-        fetch(`http://192.168.1.129:3000/establishments?${query}`)
+        fetch(`http://192.168.1.154:3000/establishments?${query}`)
           .then(response => {
             if (!response.ok) {
               throw new Error('Network response was not ok');
@@ -123,14 +123,14 @@ const LocationScreen = ({ navigation, route }) => {
             (!searchCriteria.city || establishment.city.toLowerCase() === searchCriteria.city.toLowerCase()) &&
             (!searchCriteria.day || establishment.schedules.some(schedule => searchCriteria.day.includes(schedule.day)))
         )
-        .map((establishment, index) => {
+        .map((establishment, i) => {
             const distance = isValidLocation(establishment.latitude, establishment.longitude)
                 ? calculateDistance(
                     location.latitude,
                     location.longitude,
                     establishment.latitude,
                     establishment.longitude
-                );
+                ): 0;
                 return { ...establishment, distance, i }; // Ajouter la distance et l'index aux données
             })
             .sort((a, b) => a.distance - b.distance) // Trier par distance croissante
