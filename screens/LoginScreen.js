@@ -32,7 +32,7 @@ export default function LoginScreen({ navigation }) {
          // creation d un pattern pour avoir le bon format d email.
          const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
          if(pattern.test( emailSignup)){
-            fetch('http://192.168.1.53:3000/users/signup', {
+            fetch(`http://192.168.1.129:3000/users/signup`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({email: emailSignup, password : passwordSignup})
@@ -54,7 +54,7 @@ export default function LoginScreen({ navigation }) {
     //fonction pour le signin
     const handleLogin = () => {
        
-            fetch('http://192.168.1.53:3000/users/signin', {
+            fetch(`http://192.168.1.129:3000/users/signin`, {
                 method: 'POST',
                 headers: {'Content-type' : 'application/json'},
                 body: JSON.stringify({ email: emailSignin, password : passwordSignin})
