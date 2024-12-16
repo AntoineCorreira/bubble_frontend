@@ -14,7 +14,7 @@ export default function CoordonneeScreen({navigation}) {
   const [civility, setCivility] = useState('');
   const [name, setName] = useState('');
   const [firstname, setFirstname] = useState('');
-  const [adress, setAdress] = useState('');
+  const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
   const [zip, setZip] = useState('');
   const [phone, setPhone] = useState('');
@@ -27,7 +27,7 @@ export default function CoordonneeScreen({navigation}) {
      fetch('http://192.168.1.154:3000/users/addData', {
       method: 'POST',
       headers: {'Content-type' : 'application/json'},
-      body: JSON.stringify({ civility: civility, name: name, firstname: firstname, address: adress, city: city, zip: zip, phone: phone, token : user.token })
+      body: JSON.stringify({ civility: civility, name: name, firstname: firstname, address: address, city: city, zip: zip, phone: phone, token : user.token })
       })
       .then( response => response.json())
       .then(data=>{
@@ -81,9 +81,9 @@ export default function CoordonneeScreen({navigation}) {
         <View style={styles.inputContainer}>
         <TextInput style={styles.input} onChangeText={(value)=>setName(value)} value={ name } placeholder='Nom' placeholderTextColor='#999999'/>
         <TextInput style={styles.input} onChangeText={(value)=>setFirstname(value)} value={ firstname } placeholder='Prénom' placeholderTextColor='#999999'/>
-        <TextInput style={styles.input} onChangeText={(value)=>setAdress(value)} value={ adress } placeholder='Adresse' placeholderTextColor='#999999'/>
+        <TextInput style={styles.input} onChangeText={(value)=>setAddress(value)} value={ address } placeholder='Adresse' placeholderTextColor='#999999'/>
 
-         <View style={styles.adresseContainer}>
+         <View style={styles.addresseContainer}>
          <TextInput style={styles.ville} onChangeText={(value)=>setCity(value)} value={ city } placeholder='Ville' placeholderTextColor='#999999'/>
          <TextInput style={styles.cp} onChangeText={(value)=>setZip(value)} value={ zip } placeholder='Code Postal' placeholderTextColor='#999999'/>
          </View>
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
   },
-  adresseContainer: {
+  addresseContainer: {
     flexDirection:'row',
   }
 });

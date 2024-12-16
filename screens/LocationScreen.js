@@ -52,47 +52,47 @@ const LocationScreen = ({ navigation, route }) => {
 
     useEffect(() => {
         const criteria = route.params?.searchCriteria || searchCriteria;
-        console.log('Critères de recherche reçus:', criteria);
-      
+        // console.log('Critères de recherche reçus:', criteria);
+
         const queryParts = [];
         if (criteria.city) {
-          queryParts.push(`city=${encodeURIComponent(criteria.city)}`);
+            queryParts.push(`city=${encodeURIComponent(criteria.city)}`);
         }
         if (criteria.day && criteria.day.length > 0) {
-          queryParts.push(`day=${encodeURIComponent(criteria.day.join(','))}`);
+            queryParts.push(`day=${encodeURIComponent(criteria.day.join(','))}`);
         }
         if (criteria.type) {
-          queryParts.push(`type=${encodeURIComponent(criteria.type)}`);
+            queryParts.push(`type=${encodeURIComponent(criteria.type)}`);
         }
         const query = queryParts.join('&');
-        console.log('Requête URL construite:', query);
-      
+        // console.log('Requête URL construite:', query);
+
         fetch(`http://192.168.1.154:3000/establishments?${query}`)
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Network response was not ok');
-            }
-            return response.json();
-          })
-          .then(data => {
-            console.log('Réponse de l\'API:', data);
-            console.log('Type de data:', typeof data);
-            if (Array.isArray(data.establishments)) {
-              console.log('Établissements trouvés:', data.establishments.length); 
-              if (data.establishments.length === 0) {
-                Alert.alert("Aucun établissement", "Aucun établissement n'est ouvert aux dates sélectionnées.");
-              } else {
-                setEstablishmentsData(data.establishments);
-              }
-            } else {
-              console.error('Format de données inattendu:', data);
-              Alert.alert("Erreur", "Format de données inattendu.");
-            }
-          })
-          .catch(error => {
-            console.error('Error fetching establishments:', error);
-          });
-      }, [route.params?.searchCriteria, searchCriteria]);
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // console.log('Réponse de l\'API:', data);
+                // console.log('Type de data:', typeof data);
+                if (Array.isArray(data.establishments)) {
+                    // console.log('Établissements trouvés:', data.establishments.length);
+                    if (data.establishments.length === 0) {
+                        Alert.alert("Aucun établissement", "Aucun établissement n'est ouvert aux dates sélectionnées.");
+                    } else {
+                        setEstablishmentsData(data.establishments);
+                    }
+                } else {
+                    // console.error('Format de données inattendu:', data);
+                    Alert.alert("Erreur", "Format de données inattendu.");
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching establishments:', error);
+            });
+    }, [route.params?.searchCriteria, searchCriteria]);
 
     const addEstablishmentToStore = (newEstablishment) => {
         dispatch(choosedEstablishment({
@@ -118,19 +118,19 @@ const LocationScreen = ({ navigation, route }) => {
 
     // Préparer la liste des établissements avec leurs distances depuis la position actuelle
     const establishmentList = location
-    ? establishmentsData
-        .filter(establishment => 
-            (!searchCriteria.city || establishment.city.toLowerCase() === searchCriteria.city.toLowerCase()) &&
-            (!searchCriteria.day || establishment.schedules.some(schedule => searchCriteria.day.includes(schedule.day)))
-        )
-        .map((establishment, i) => {
-            const distance = isValidLocation(establishment.latitude, establishment.longitude)
-                ? calculateDistance(
-                    location.latitude,
-                    location.longitude,
-                    establishment.latitude,
-                    establishment.longitude
-                ): 0;
+        ? establishmentsData
+            .filter(establishment =>
+                (!searchCriteria.city || establishment.city.toLowerCase() === searchCriteria.city.toLowerCase()) &&
+                (!searchCriteria.day || establishment.schedules.some(schedule => searchCriteria.day.includes(schedule.day)))
+            )
+            .map((establishment, i) => {
+                const distance = isValidLocation(establishment.latitude, establishment.longitude)
+                    ? calculateDistance(
+                        location.latitude,
+                        location.longitude,
+                        establishment.latitude,
+                        establishment.longitude
+                    ) : 0;
                 return { ...establishment, distance, i }; // Ajouter la distance et l'index aux données
             })
             .sort((a, b) => a.distance - b.distance) // Trier par distance croissante
@@ -141,9 +141,9 @@ const LocationScreen = ({ navigation, route }) => {
                         <View style={styles.nameAndDistance}>
                             <Text style={styles.itemName}>
                                 {establishment.name.length > 50
-                                ? establishment.name.slice(0, 50) + '...'
-                                : establishment.name}
-                                </Text>
+                                    ? establishment.name.slice(0, 50) + '...'
+                                    : establishment.name}
+                            </Text>
                             <Text style={styles.distanceText}>
                                 {establishment.distance.toFixed(2)} km
                             </Text>
@@ -152,9 +152,9 @@ const LocationScreen = ({ navigation, route }) => {
                             {establishment.description.length > 60
                                 ? establishment.description.slice(0, 60) + '...'
                                 : establishment.description}
-                                </Text>
+                        </Text>
                     </View>
-                    <FontAwesome name="plus-circle" size={30} color="#98B9F2" onPress={() => {addEstablishmentToStore(establishment)}}/>
+                    <FontAwesome name="plus-circle" size={30} color="#98B9F2" onPress={() => { addEstablishmentToStore(establishment) }} />
                 </View>
             ))
         : null; // Ne pas afficher la liste si location est null
