@@ -6,7 +6,8 @@ import { useDispatch, useSelector } from 'react-redux';
 //import de la bibliotheque expo-checkbox
 import { Checkbox } from 'expo-checkbox';
 
-const serveurIP = process.env.expo_public_serveur_IP;
+const serveurIP = process.env.EXPO_PUBLIC_SERVEUR_IP;
+console.log('Serveur IP:', serveurIP);
 
 //ajout du module navigation
 export default function CoordonneeScreen({navigation}) {

@@ -7,6 +7,9 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 
+const serveurIP = process.env.EXPO_PUBLIC_SERVEUR_IP;
+console.log('Serveur IP:', serveurIP);
+
 // Fonction pour calculer la distance entre deux points GPS
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371;
@@ -16,8 +19,6 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
 }
-
-const serveurIP = process.env.expo_public_serveur_IP
 
 const LocationScreen = ({ navigation, route }) => {
     const dispatch = useDispatch();
@@ -137,7 +138,7 @@ const LocationScreen = ({ navigation, route }) => {
             })
             .sort((a, b) => a.distance - b.distance) // Trier par distance croissante
             .map((establishment, i) => (
-                <View key={i} style={styles.establishmentItem}>
+                <TouchableOpacity key={i} style={styles.establishmentItem} onPress={() => { addEstablishmentToStore(establishment) }}>
                     <Image source={{ uri: establishment.image }} style={styles.establishmentImage} />
                     <View style={styles.description}>
                         <View style={styles.nameAndDistance}>
@@ -156,8 +157,8 @@ const LocationScreen = ({ navigation, route }) => {
                                 : establishment.description}
                         </Text>
                     </View>
-                    <FontAwesome name="plus-circle" size={30} color="#98B9F2" onPress={() => { addEstablishmentToStore(establishment) }} />
-                </View>
+
+                </TouchableOpacity>
             ))
         : null; // Ne pas afficher la liste si location est null
 
@@ -201,7 +202,7 @@ const LocationScreen = ({ navigation, route }) => {
                 <View style={styles.inputContainer}>
                     <TextInput
                         style={styles.input}
-                        placeholder="City . Period . Type"
+                        placeholder="Ville . Période . Type de garde"
                         placeholderTextColor="#999999"
                         onFocus={() => navigation.navigate('Filter')}
                     />
@@ -249,7 +250,7 @@ const LocationScreen = ({ navigation, route }) => {
                         </MapView>
 
                         {selectedEstablishment && (
-                            <View style={styles.selectedEstablishment}>
+                            <TouchableOpacity style={styles.selectedEstablishment} onPress={() => { addEstablishmentToStore(selectedEstablishment) }}>
                                 <Image
                                     source={{ uri: selectedEstablishment.image }}
                                     style={styles.establishmentImage}
@@ -262,8 +263,7 @@ const LocationScreen = ({ navigation, route }) => {
                                         {selectedEstablishment.description}
                                     </Text>
                                 </View>
-                                <FontAwesome name="plus-circle" size={30} color="#98B9F2" onPress={() => { addEstablishmentToStore(selectedEstablishment) }} />
-                            </View>
+                            </TouchableOpacity>
                         )}
                     </View>
                 )}
@@ -328,19 +328,19 @@ const styles = StyleSheet.create({
         borderColor: '#FFFFFF',
         marginHorizontal: 5,
     },
-    activeButton: {
+    inactiveButton: {
         backgroundColor: '#FFFFFF',
         borderColor: '#98B9F2',
     },
-    inactiveButton: {
+    activeButton: {
         backgroundColor: '#98B9F2',
         borderColor: '#FFFFFF',
         borderWidth: 2,
     },
-    buttonTextActive: {
+    buttonTextInactive: {
         color: '#98B9F2',
     },
-    buttonTextInactive: {
+    buttonTextActive: {
         color: '#FFFFFF',
     },
     input: {

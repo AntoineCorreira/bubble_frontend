@@ -17,7 +17,8 @@ import { Picker } from "@react-native-picker/picker";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faUserPlus } from '@fortawesome/free-solid-svg-icons'
 
-const serveurIP = process.env.expo_public_serveur_IP;
+const serveurIP = process.env.EXPO_PUBLIC_SERVEUR_IP;
+console.log('Serveur IP:', serveurIP);
 
 export default function FamilyScreen({ navigation }) {
   const [nameChild, setNameChild] = useState("");
