@@ -50,5 +50,5 @@ export const nomDuReducerSlice = createSlice({
  },
 });
 
-export const { nomFonction, login, lougout } = nomDuReducerSlice.actions;
+export const { login, lougout } = nomDuReducerSlice.actions;
 export default nomDuReducerSlice.reducer;

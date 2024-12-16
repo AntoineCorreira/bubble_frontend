@@ -3,8 +3,47 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { useSelector } from 'react-redux';
 
 export default function EstablishmentScreen({ navigation }) {
+    // const user = useSelector((state) => state.user.value)
+    // console.log('Reducer :', user);
+    // const criteria = useSelector((state) => state.searchCriteria.value)
     const establishment = useSelector((state) => state.establishment.value)
-    console.log(establishment);
+
+    const criteria = {
+        city: 'Bordeaux',
+        startDate: '13/12/2024',
+        endDate: '13/12/2024',
+        child: 'Lio'
+    }
+
+    const user = {
+        firstname: 'Antoine',
+        name: 'Correira',
+    }
+
+    const reservationData = {
+        startDate: criteria.startDate,
+        endDate: criteria.endDate,
+        parentFirstname: user.firstname,
+        parentName: user.name,
+        child: criteria.child,
+        establishmentName: establishment.name,
+        establishmentZip: establishment.zip,
+        status: 'pending',
+    }
+
+    makeRequest = async () => {
+        try {
+            const response = await fetch('http://192.168.1.53:3000/reservations', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(reservationData),
+            });
+            const data = await response.json();
+            console.log(data);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
 
     const gallery = establishment.gallery.map((image, i) => {
         return (
@@ -53,7 +92,7 @@ export default function EstablishmentScreen({ navigation }) {
                         <TouchableOpacity style={styles.buttonContact}>
                             <Text style={styles.buttonContactText}>Contacter</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.buttonRequest}>
+                        <TouchableOpacity style={styles.buttonRequest} onPress={makeRequest}>
                             <Text style={styles.buttonRequestText}>Faire une demande</Text>
                         </TouchableOpacity>
                     </View>

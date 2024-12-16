@@ -130,15 +130,11 @@ React.useEffect(() => {
                 <TouchableOpacity onPress={() => handleSubmit()} style={styles.button} activeOpacity={0.8}>
                 <Text style={styles.textButton}>S'inscrire</Text>
                 </TouchableOpacity>
-              
-                <TouchableOpacity onPress={() => navigation.navigate('TabNavigator', { screen: 'Search' })} style={styles.button} activeOpacity={0.8}>
-                <Text style={styles.textButton}>S'inscrire avec Google</Text>
-                </TouchableOpacity>
               </View>
             </View>
 
             <View style={styles.loginContainer}>
-              <Text style={styles.text}>Ce connecter</Text>
+              <Text style={styles.text}>Se connecter</Text>
               <TextInput style={styles.input} onChangeText={(value)=>setEmailSignin(value)} value={ emailSignin } placeholder='Email' placeholderTextColor='#999999'/>
               <TextInput style={styles.input} onChangeText={(value)=>setPasswordSignin(value)} value={ passwordSignin } placeholder='Mot de passe' placeholderTextColor='#999999'/>
               {emailError2 && <Text style={styles.errorText}>Email ou mot de passe non valide</Text>}
