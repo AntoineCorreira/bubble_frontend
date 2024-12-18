@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, TouchableOpacity, ImageBackground, TextInput, KeyboardAvoidingView, Platform } from 'react-native'
 // import { Navigation } from '@react-navigation/native';
 import React, { useState } from 'react'
-import { useDispatch } from 'react-redux';
+import { useDispatch} from 'react-redux';
 import { login } from '../reducers/user';
 // import pour la connection google
 import { useAuthRequest } from 'expo-auth-session';

@@ -45,25 +45,26 @@ export default function FamilyScreen({ navigation }) {
     })
       .then((response) => response.json())
       .then((data) => {
-        change === false && navigation.navigate('TabNavigator', { screen: 'Search' });
-        setNameChild(nameChild === "")
-        setFirstnameChild(firstnameChild === "")
-        setBirthDate(birthDate === "")
-        dispatch(
-          login({
-            token: data.donnee.token,
-            email: data.donnee.email,
-            name: data.donnee.name,
-            firstname: data.donnee.firstname,
-            civility: data.donnee.civility,
-            address: data.donnee.address,
-            city: data.donnee.city,
-            zip: data.donnee.zip,
-            phone: data.donnee.phone,
-            type: data.donnee.type,
-            children: data.donnee.children,
-          })
-        );
+          change === false && navigation.navigate('TabNavigator', { screen: 'Search' });
+          setNameChild(nameChild === "")
+          setFirstnameChild(firstnameChild === "")
+          setBirthDate(birthDate === "")
+          dispatch(
+            login({
+              token: data.donnee.token,
+              email: data.donnee.email,
+              name: data.donnee.name,
+              firstname: data.donnee.firstname,
+              civility: data.donnee.civility,
+              address: data.donnee.address,
+              city: data.donnee.city,
+              zip: data.donnee.zip,
+              phone: data.donnee.phone,
+              type: data.donnee.type,
+              children: data.donnee.children,
+              _id: data.donnee._id,
+            })
+          );
       });
   };
   // creation d une fonction pour ajouté un document
@@ -116,8 +117,8 @@ export default function FamilyScreen({ navigation }) {
           <Text style={styles.textButton}>Joindre des documents</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.iconContainer} onPress={() => handleSubmit(true)} >
-          <FontAwesomeIcon icon={faUserPlus} style={styles.icon} size={50} color="#FFFFFF" />
+        <TouchableOpacity style={styles.iconContainer} onPress={()=>handleSubmit(true)} >
+        <FontAwesomeIcon icon={faUserPlus} style={styles.icon} size={50} color="#FFFFFF"  />
         </TouchableOpacity>
         <Text style={styles.text2}>Quelle type de garde priorisez-vous?</Text>
         <View style={styles.container}>
@@ -148,7 +149,7 @@ export default function FamilyScreen({ navigation }) {
           </View>
         </View>
         <TouchableOpacity
-          onPress={() => handleSubmit(false)}
+          onPress={() => handleSubmit(false) }
           style={styles.button}
           activeOpacity={0.8}
         >

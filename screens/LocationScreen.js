@@ -9,12 +9,18 @@ import * as Location from 'expo-location';
 
 const serveurIP = process.env.EXPO_PUBLIC_SERVEUR_IP;
 
-// Fonction pour calculer la distance entre deux points GPS
+
+
+
 function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371;
+    const R = 6371; // Rayon de la Terre en km
     const dLat = (lat2 - lat1) * (Math.PI / 180);
     const dLon = (lon2 - lon1) * (Math.PI / 180);
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * (Math.PI / 180)) *
+        Math.cos(lat2 * (Math.PI / 180)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
 }
@@ -24,10 +30,10 @@ const LocationScreen = ({ navigation, route }) => {
     const user = useSelector((state) => state.user.value); // Type par défaut depuis user store
     const [viewMode, setViewMode] = useState('list');
     const [location, setLocation] = useState(null);
-    const [selectedEstablishment, setSelectedEstablishment] = useState(null);
     const [establishmentsData, setEstablishmentsData] = useState([]);
     const [locationPermission, setLocationPermission] = useState(false);
     const searchCriteria = useSelector(state => state.searchCriteria);
+    const selectedEstablishment = useSelector(state => state.searchCriteria.selectedEstablishment); // Utilisation du state Redux pour l'établissement sélectionné
 
     useEffect(() => {
         const loadFonts = async () => {
@@ -55,8 +61,6 @@ const LocationScreen = ({ navigation, route }) => {
 
     useEffect(() => {
         const criteria = route.params?.searchCriteria || searchCriteria;
-        // console.log('Critères de recherche reçus:', criteria);
-
         const queryParts = [];
         if (criteria.city) {
             queryParts.push(`city=${encodeURIComponent(criteria.city)}`);
@@ -68,7 +72,6 @@ const LocationScreen = ({ navigation, route }) => {
             queryParts.push(`type=${encodeURIComponent(criteria.type)}`);
         }
         const query = queryParts.join('&');
-        // console.log('Requête URL construite:', query);
 
         fetch(`http://${serveurIP}:3000/establishments?${query}`)
             .then(response => {
@@ -78,17 +81,13 @@ const LocationScreen = ({ navigation, route }) => {
                 return response.json();
             })
             .then(data => {
-                // console.log('Réponse de l\'API:', data);
-                // console.log('Type de data:', typeof data);
                 if (Array.isArray(data.establishments)) {
-                    // console.log('Établissements trouvés:', data.establishments.length);
                     if (data.establishments.length === 0) {
                         Alert.alert("Aucun établissement", "Aucun établissement n'est ouvert aux dates sélectionnées.");
                     } else {
                         setEstablishmentsData(data.establishments);
                     }
                 } else {
-                    // console.error('Format de données inattendu:', data);
                     Alert.alert("Erreur", "Format de données inattendu.");
                 }
             })
@@ -97,7 +96,7 @@ const LocationScreen = ({ navigation, route }) => {
             });
     }, [route.params?.searchCriteria, searchCriteria]);
 
-      const addEstablishmentToStore = (newEstablishment) => {
+    const addEstablishmentToStore = (newEstablishment) => {
         dispatch(choosedEstablishment({
             name: newEstablishment.name,
             description: newEstablishment.description,
@@ -112,17 +111,7 @@ const LocationScreen = ({ navigation, route }) => {
             schedules: newEstablishment.schedules,
             capacity: newEstablishment.capacity,
         }));
-    
-        // Extraire les critères de recherche
-        const { days } = searchCriteria;  // Assurez-vous que `searchCriteria` contient bien les dates sélectionnées
-        
-        if (!days || days.length === 0) {
-            // Si aucune date n'est sélectionnée, redirection vers l'écran des filtres obligatoires
-            navigation.navigate('ObligatoryFilter');
-        } else {
-            // Si une date est sélectionnée, on peut aller vers l'écran de l'établissement
-            navigation.navigate('Establishment', { establishment: newEstablishment });
-        }
+        navigation.navigate('Establishment');
     };
     
     
@@ -154,13 +143,15 @@ const LocationScreen = ({ navigation, route }) => {
         14: require(`../assets/etablissements/image14.png`),
     }
 
-    // Préparer la liste des établissements avec leurs distances depuis la position actuelle
     const establishmentList = location
         ? establishmentsData
-            .filter(establishment =>
-                (!searchCriteria.city || establishment.city.toLowerCase() === searchCriteria.city.toLowerCase()) &&
-                (!searchCriteria.day || establishment.schedules.some(schedule => searchCriteria.day.includes(schedule.day)))
-            )
+            .filter(establishment => {
+                const isCityMatch = !searchCriteria.city || establishment.city.toLowerCase() === searchCriteria.city.toLowerCase();
+                const isDateMatch = !searchCriteria.day || establishment.schedules.some(schedule => searchCriteria.day.includes(schedule.day));
+                const isTypeMatch = !searchCriteria.type || establishment.type === searchCriteria.type;
+
+                return isCityMatch && isDateMatch && isTypeMatch;
+            })
             .map((establishment, i) => {
                 const distance = isValidLocation(establishment.latitude, establishment.longitude)
                     ? calculateDistance(
@@ -210,7 +201,6 @@ const LocationScreen = ({ navigation, route }) => {
                 )
                 : 0;
 
-            // Créer une clé unique pour chaque marqueur
             const markerKey = establishment.id
                 ? establishment.id.toString()
                 : `marker-fallback-key-${index}`;
@@ -225,7 +215,7 @@ const LocationScreen = ({ navigation, route }) => {
                     title={establishment.name}
                     description={`Distance: ${distance.toFixed(2)} km`}
                     onPress={() => {
-                        setSelectedEstablishment(establishment);
+                        addEstablishmentToStore(establishment);
                     }}
                 />
             );
@@ -268,9 +258,6 @@ const LocationScreen = ({ navigation, route }) => {
                 {viewMode === 'list' ? (
                     <ScrollView contentContainerStyle={styles.establishmentContainer}>
                         {establishmentList}
-                        {/* <TouchableOpacity style={styles.loadMoreButton} onPress={loadMoreEstablishments}>
-                            <Text style={styles.loadMoreText}>Voir plus</Text>
-                        </TouchableOpacity> */}
                     </ScrollView>
                 ) : (
                     <View style={styles.mapContainer}>
@@ -308,6 +295,12 @@ const LocationScreen = ({ navigation, route }) => {
         </ImageBackground>
     );
 };
+
+
+
+
+
+
 
 const styles = StyleSheet.create({
     background: {
