@@ -1,8 +1,6 @@
 import { ImageBackground, TouchableOpacity, StyleSheet, Text, View, KeyboardAvoidingView, Platform, TextInput } from 'react-native'// import de KeyboardAvoidingView et Platform pour probleme clavier qui cache input
 import React, {  useState } from 'react'
 import { login } from '../reducers/user';
-import React, {  useState } from 'react'
-import { login } from '../reducers/user';
 //utilisation de redux useSelector pour recuperer le token pour le fetch
 import { useDispatch, useSelector } from 'react-redux';
 //import de la bibliotheque expo-checkbox
