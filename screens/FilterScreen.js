@@ -24,7 +24,6 @@ const getDayOfWeek = (dateString) => {
 };
 
 const serveurIP = process.env.EXPO_PUBLIC_SERVEUR_IP;
-console.log('Serveur IP:', serveurIP);
 
 const FilterScreen = ({ navigation, background = require('../assets/background.png') }) => {
   const userId = useSelector(state => state.user.id); // Accéder à l'ID de l'utilisateur connecté

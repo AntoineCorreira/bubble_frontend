@@ -14,6 +14,7 @@
     "@fortawesome/free-brands-svg-icons": "^6.7.1",
     "@fortawesome/free-solid-svg-icons": "^6.7.1",
     "@fortawesome/react-native-fontawesome": "^0.3.2",
+    "@react-native-clipboard/clipboard": "^1.15.0",
     "@react-native-community/datetimepicker": "^8.2.0",
     "@react-native-picker/picker": "^2.10.2",
     "@react-navigation/bottom-tabs": "6",

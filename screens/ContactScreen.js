@@ -1,9 +1,15 @@
-import { View, Text, StyleSheet, ImageBackground, ScrollView, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, ScrollView, TextInput, TouchableOpacity, Dimensions } from 'react-native';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import Mailer from 'react-native-mail'; // Import de react-native-mail
+import { Linking } from 'react-native';
 import { useSelector } from 'react-redux';
+import { useState } from 'react';
+
+const serveurIP = process.env.EXPO_PUBLIC_SERVEUR_IP;
 
 export default function ContactScreen({ navigation }) {
+    const [email, setEmail] = useState('');
+    const [object, setObject] = useState('');
+    const [message, setMessage] = useState('');
     const establishment = useSelector((state) => state.establishment.value);
     console.log('Establishment:', establishment);
     const user = useSelector((state) => state.user.value);
@@ -29,27 +35,27 @@ ${user.firstname} ${user.name}`;
 
     // Fonction pour ouvrir l'application mail
     const sendEmail = () => {
-        console.log('Establishment mail', establishment.mail);
-        if (!establishment || !establishment.mail) {
-            console.warn("Les informations de l'établissement sont manquantes.");
-            return;
-        }
-
-        Mailer.send(
-            {
-                subject: "Demande de garde d'enfant",
-                recipients: ['antoine.correira@gmail.com'], // Adresse de l'établissement
-                body: defaultMessage, // Corps du message
-                isHTML: false, // Si le contenu doit être interprété comme HTML
-            },
-            (error, event) => {
-                if (error) {
-                    console.warn("Erreur lors de l'envoi de l'email :", error);
-                } else {
-                    console.log('Email envoyé avec succès :', event);
-                }
-            }
-        );
+        fetch(`http://${serveurIP}:3000/mails/send`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                to: establishment.mail,
+                cc: email,
+                subject: object,
+                text: message
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data)
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+        console.log(establishment.mail)
+        console.log(email)
+        console.log(object)
+        console.log(message)
     };
 
     return (
@@ -70,7 +76,9 @@ ${user.firstname} ${user.name}`;
                     {/* Informations de contact */}
                     <View style={styles.contactRow}>
                         <FontAwesome5 name="phone" size={30} color="#FFFFFF" style={styles.icon} />
-                        <Text style={styles.text}>{establishment.phone}</Text>
+                        <TouchableOpacity onPress={() => establishment.phone ? Linking.openURL(`tel:${establishment.phone}`) : alert('Numéro de téléphone non disponible')}>
+                            <Text style={styles.text}>{establishment.phone}</Text>
+                        </TouchableOpacity>
                     </View>
                     <View style={styles.contactRow}>
                         <FontAwesome5 name="at" size={30} color="#FFFFFF" style={styles.icon} />
@@ -81,14 +89,28 @@ ${user.firstname} ${user.name}`;
                     {/* Champ message et bouton envoyer */}
                     <View style={styles.messageBox}>
                         <TextInput
+                            style={styles.mailUser}
+                            placeholder= {`Mail : ${user.email}`}
+                            onChangeText={(value) => setEmail(value)}
+                            value={email}
+                        />
+                        <TextInput
+                            style={styles.objectInput}
+                            placeholder="Objet: Demande d'informations"
+                            onChangeText={(value) => setObject(value)}
+                            value={object}
+                        />
+                        <TextInput
                             style={styles.messageInput}
                             multiline={true}
-                            defaultValue={defaultMessage}
+                            placeholder={defaultMessage}
+                            onChangeText={(value) => setMessage(value)}
+                            value={message}
                         />
-                        <TouchableOpacity style={styles.sendButton} onPress={() => sendEmail()}>
-                            <Text style={styles.sendButtonText}>Envoyer</Text>
-                        </TouchableOpacity>
                     </View>
+                    <TouchableOpacity style={styles.sendButton} onPress={() => sendEmail()}>
+                        <Text style={styles.sendButtonText}>Envoyer</Text>
+                    </TouchableOpacity>
                 </ScrollView>
             </View>
         </ImageBackground>
@@ -142,17 +164,32 @@ const styles = StyleSheet.create({
         flexShrink: 1, // Gestion des textes longs
     },
     messageBox: {
-        marginTop: 20,
         width: '90%',
-        backgroundColor: '#FFFFFF20', // Fond blanc transparent
+        backgroundColor: 'transparent',
         borderRadius: 10,
         padding: 15,
     },
+    mailUser: {
+        fontSize: 16,
+        color: 'black',
+        backgroundColor: '#FFFFFF',
+        borderRadius: 10,
+        marginVertical: 10,
+    },
+    objectInput: {
+        fontSize: 16,
+        color: 'black',
+        backgroundColor: '#FFFFFF',
+        borderRadius: 10,
+    },
     messageInput: {
         fontSize: 16,
-        color: '#FFFFFF',
+        color: 'black',
+        backgroundColor: '#FFFFFF',
         minHeight: 120,
         textAlignVertical: 'top', // Alignement pour les zones de texte
+        borderRadius: 10,
+        marginVertical: 10,
     },
     sendButton: {
         marginTop: 10,
@@ -161,7 +198,8 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         alignItems: 'center',
         borderWidth: 2,
-        borderColor: '#FFFFFF'
+        borderColor: '#FFFFFF',
+        width: 185,
     },
     sendButtonText: {
         color: '#FFFFFF',
