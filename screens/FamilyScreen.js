@@ -21,16 +21,15 @@ export default function FamilyScreen({navigation}) {
   const [nameChild, setNameChild] = useState("");
   const [firstnameChild, setFirstnameChild] = useState("");
   const [birthDate, setBirthDate] = useState("");
-  const [countChild, setCountChild] = useState(0)
-  // console.log(countChild)
+  
   // selecteur de type de creche
   const [selectedValue, setSelectedValue] = useState("");
   // toujours l utilisation de useSelector() pour s'identifié avec le token
   const user = useSelector((state) => state.user.value);
   const dispatch = useDispatch();
   // creation de la fonction pour l ajout des données de l enfant grace a la route  POST/addChild
-  const handleSubmit = () => {
-    fetch("http://192.168.1.154:3000/users/addChild", {
+  const handleSubmit = (change) => {
+    fetch("http://192.168.1.129:3000/users/addChild", {
       method: "POST",
       headers: { "Content-type": "application/json" },
       body: JSON.stringify({
@@ -43,9 +42,13 @@ export default function FamilyScreen({navigation}) {
     })
       .then((response) => response.json())
       .then((data) => {
-          navigation.navigate('TabNavigator', { screen: 'Search' });
+          change === false && navigation.navigate('TabNavigator', { screen: 'Search' });
+          setNameChild(nameChild === "")
+          setFirstnameChild(firstnameChild === "")
+          setBirthDate(birthDate === "")
           dispatch(
             login({
+              token: data.donnee.token,
               email: data.donnee.email,
               name: data.donnee.name,
               firstname: data.donnee.firstname,
@@ -56,15 +59,16 @@ export default function FamilyScreen({navigation}) {
               phone: data.donnee.phone,
               type: data.donnee.type,
               children: data.donnee.children,
+              _id: data.donnee._id,
             })
           );
       });
   };
- // creation d une function pour compté les nombres d enfants pour affichage
- const count = () =>{
-  // console.log("click")
-   setCountChild(countChild + 1)
- }
+   // creation d une fonction pour ajouté un document
+   const handleDocument = () =>{
+
+   }
+
   return (
     <ImageBackground
       style={styles.imageBackground}
@@ -77,7 +81,7 @@ export default function FamilyScreen({navigation}) {
         <Text style={styles.title}>BUBBLE</Text>
         <View style={styles.header}>
           <Text style={styles.text1}>Ma famille</Text>
-          <Text style={styles.text2}>Ajouter mes enfants :</Text>
+          <Text style={styles.text2}>Vous avez pour le moment {user.children.length} enfants ajouté</Text>
         </View>
         <View style={styles.inputContainer}>
           <TextInput
@@ -103,15 +107,15 @@ export default function FamilyScreen({navigation}) {
           />
         </View>
         <TouchableOpacity
-          onPress={() => handleSubmit()}
+          onPress={() => handleDocument()}
           style={styles.joinDocBtn}
           activeOpacity={0.8}
         > 
           <Text style={styles.textButton}>Joindre des documents</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.iconContainer} onPress={count}>
-        <FontAwesomeIcon icon={faUserPlus} style={styles.icon} size={25} color="#FFFFFF" />
+        <TouchableOpacity style={styles.iconContainer} onPress={()=>handleSubmit(true)} >
+        <FontAwesomeIcon icon={faUserPlus} style={styles.icon} size={50} color="#FFFFFF"  />
         </TouchableOpacity>
         <Text style={styles.text2}>Quelle type de garde priorisez-vous?</Text>
         <View style={styles.container}>
@@ -142,7 +146,7 @@ export default function FamilyScreen({navigation}) {
           </View>
         </View>
         <TouchableOpacity
-          onPress={() => handleSubmit()}
+          onPress={() => handleSubmit(false) }
           style={styles.button}
           activeOpacity={0.8}
         >
