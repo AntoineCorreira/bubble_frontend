@@ -33,10 +33,10 @@ export default function CoordonneeScreen({navigation}) {
       body: JSON.stringify({ civility: civility, name: name, firstname: firstname, address: adress, city: city, zip: zip, phone: phone, token : user.token })
       })
       .then( response => response.json())
-      .then(data=>{ console.log('fetch addData',data.dataBdd.token)
+      .then(data=>{ console.log('fetch addData',data.dataBdd)
         if(data.dataBdd.token){
           navigation.navigate('Enfant');
-          Dispatch(login({token : data.dataBdd.token, children : []}))
+          Dispatch(login({_id: data.dataBdd._id, token : data.dataBdd.token, children : []}))
         }
       })
   }
