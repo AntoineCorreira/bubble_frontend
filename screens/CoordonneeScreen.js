@@ -6,6 +6,9 @@ import { useDispatch, useSelector } from 'react-redux';
 //import de la bibliotheque expo-checkbox
 import { Checkbox } from 'expo-checkbox';
 
+const serveurIP = process.env.EXPO_PUBLIC_SERVEUR_IP;
+console.log('Serveur IP:', serveurIP);
+
 //ajout du module navigation
 export default function CoordonneeScreen({navigation}) {
   const [isMonsieurSelected, setMonsieurSelected] = useState(false);
@@ -24,7 +27,7 @@ export default function CoordonneeScreen({navigation}) {
   const Dispatch= useDispatch()
 // creation de la fonction handleSubmit pour sauvegarder toutes les nouvelles données de l'utilisateur
      const handleSubmit = () => {
-     fetch('http://192.168.1.53:3000/users/addData', {
+     fetch(`http://${serveurIP}:3000/users/addData`, {
       method: 'POST',
       headers: {'Content-type' : 'application/json'},
       body: JSON.stringify({ civility: civility, name: name, firstname: firstname, address: adress, city: city, zip: zip, phone: phone, token : user.token })

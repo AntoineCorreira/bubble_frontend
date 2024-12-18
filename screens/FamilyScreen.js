@@ -17,11 +17,14 @@ import { Picker } from "@react-native-picker/picker";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faUserPlus } from '@fortawesome/free-solid-svg-icons'
 
-export default function FamilyScreen({navigation}) {
+const serveurIP = process.env.EXPO_PUBLIC_SERVEUR_IP;
+console.log('Serveur IP:', serveurIP);
+
+export default function FamilyScreen({ navigation }) {
   const [nameChild, setNameChild] = useState("");
   const [firstnameChild, setFirstnameChild] = useState("");
   const [birthDate, setBirthDate] = useState("");
-  
+
   // selecteur de type de creche
   const [selectedValue, setSelectedValue] = useState("");
   // toujours l utilisation de useSelector() pour s'identifié avec le token
@@ -29,7 +32,7 @@ export default function FamilyScreen({navigation}) {
   const dispatch = useDispatch();
   // creation de la fonction pour l ajout des données de l enfant grace a la route  POST/addChild
   const handleSubmit = (change) => {
-    fetch("http://192.168.1.53:3000/users/addChild", {
+    fetch(`http://${serveurIP}:3000/users/addChild`, {
       method: "POST",
       headers: { "Content-type": "application/json" },
       body: JSON.stringify({
@@ -59,6 +62,7 @@ export default function FamilyScreen({navigation}) {
               phone: data.donnee.phone,
               type: data.donnee.type,
               children: data.donnee.children,
+              _id: data.donnee._id,
             })
           );
       });
@@ -109,7 +113,7 @@ export default function FamilyScreen({navigation}) {
           onPress={() => handleDocument()}
           style={styles.joinDocBtn}
           activeOpacity={0.8}
-        > 
+        >
           <Text style={styles.textButton}>Joindre des documents</Text>
         </TouchableOpacity>
 
@@ -250,7 +254,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#999999",
   },
-   iconContainer:{
+  iconContainer: {
     marginTop: 10
-   }
+  }
 });

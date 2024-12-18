@@ -16,9 +16,12 @@ import FamilyScreen from './screens/FamilyScreen';
 import LocationScreen from './screens/LocationScreen';
 import FilterScreen from './screens/FilterScreen';
 import EstablishmentScreen from './screens/EstablishmentScreen';
+import ContactScreen from './screens/ContactScreen';
+import ValidationScreen from './screens/ValidationScreen';
 import MessageScreen from './screens/MessageScreen';
 import ProfilScreen from './screens/ProfilScreen';
 import ReservationScreen from './screens/ReservationScreen';
+import ObligatoryFilterScreen from './screens/ObligatoryFilterScreen'; 
 
 const store = configureStore({
   reducer: { 
@@ -56,7 +59,7 @@ const TabNavigator = () => {
                   style={{
                     position: 'absolute',
                     width: size + 60, // Ajustez la largeur par rapport à la taille de l'icône (size)
-                    height: size + 20, // Ajustez la hauteur
+                    height: size + 20, // Ajuste la hauteur
                     borderRadius: 10,
                     backgroundColor: 'rgba(255, 255, 255, 0.5)', // Couleur semi-transparente
                     alignItems: 'center',
@@ -99,18 +102,11 @@ export default function App() {
           <Stack.Screen name="Enfant" component={FamilyScreen} />
           <Stack.Screen name="Filter" component={FilterScreen} />
           <Stack.Screen name="Establishment" component={EstablishmentScreen}/>
+          <Stack.Screen name="Validation" component={ValidationScreen}/>
+          <Stack.Screen name="Contact" component={ContactScreen}/>
           <Stack.Screen name="TabNavigator" component={TabNavigator} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

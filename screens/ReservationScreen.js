@@ -1,11 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, TextInput, Image, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 
 const ReservationScreen = () => {
     return (
-        <View style={styles.container}>
-            <Text style={styles.screenTitle}>Nom du Screen</Text>
-        </View>
+        <ImageBackground
+                    source={require('../assets/background.png')}
+                    style={styles.background}
+        >   
+        </ImageBackground>
     );
 }
 
