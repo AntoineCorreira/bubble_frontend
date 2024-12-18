@@ -23,6 +23,8 @@ const getDayOfWeek = (dateString) => {
   return daysOfWeek[date.getDay()];
 };
 
+const serveurIP = process.env.EXPO_PUBLIC_SERVEUR_IP;
+
 const FilterScreen = ({ navigation, background = require('../assets/background.png') }) => {
   const userId = useSelector(state => state.user.id); // Accéder à l'ID de l'utilisateur connecté
   const dispatch = useDispatch();
@@ -44,7 +46,7 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
 
   useEffect(() => {
     if (!selectedCity) {
-      fetch('http://192.168.1.154:3000/establishments/city')
+      fetch(`http://${serveurIP}:3000/establishments/city`)
         .then(response => response.json())
         .then(data => setCities(data))
         .catch(error => {
@@ -55,7 +57,7 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
   }, [selectedCity]);
 
   const handleSliderClick = () => {
-    fetch('http://192.168.1.154:3000/establishments/type')
+    fetch(`http://${serveurIP}:3000/establishments/type`)
       .then(response => response.json())
       .then(data => {
         setTypesOfCare(data);
@@ -118,7 +120,7 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
 
     console.log('Critères envoyés:', criteria);
 
-    fetch(`http://192.168.1.154:3000/establishments?city=${encodeURIComponent(criteria.city)}&days=${encodeURIComponent(criteria.days)}&type=${encodeURIComponent(criteria.type)}&children=${encodeURIComponent(criteria.children)}`)
+    fetch(`http://${serveurIP}:3000/establishments?city=${encodeURIComponent(criteria.city)}&days=${encodeURIComponent(criteria.days)}&type=${encodeURIComponent(criteria.type)}&children=${encodeURIComponent(criteria.children)}`)
       .then(response => {
         if (!response.ok) {
           console.error('Erreur dans la réponse:', response);
@@ -185,7 +187,7 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
   
 
   const handleChildrenFetch = () => {
-    fetch(`http://192.168.1.154:3000/children?userId=${userId}`)
+    fetch(`http://${serveurIP}:3000/children?userId=${userId}`)
       .then(response => {
         if (!response.ok) {
           return response.text().then(text => { throw new Error(text) });

@@ -2,30 +2,32 @@ import { View, Text, StyleSheet, ImageBackground, TextInput, Image, ScrollView, 
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import { useSelector } from 'react-redux';
 
+const serveurIP = process.env.EXPO_PUBLIC_SERVEUR_IP;
+
 export default function EstablishmentScreen({ navigation }) {
-    // const user = useSelector((state) => state.user.value)
-    // console.log('Reducer :', user);
+    const user = useSelector((state) => state.user.value)
+    console.log('Reducer :', user);
     // const criteria = useSelector((state) => state.searchCriteria.value)
     const establishment = useSelector((state) => state.establishment.value)
 
     const criteria = {
-        city: 'Bordeaux',
-        startDate: '13/12/2024',
-        endDate: '13/12/2024',
-        child: 'Lio'
+        city: 'Paris',
+        startDate: '02/01/2025',
+        endDate: '03/01/2025',
+        childName: 'Alexandre'
     }
 
-    const user = {
-        firstname: 'Antoine',
-        name: 'Correira',
-    }
+    // const user = {
+    //     firstname: 'Antoine',
+    //     name: 'Correira',
+    // }
 
     const reservationData = {
         startDate: criteria.startDate,
         endDate: criteria.endDate,
         parentFirstname: user.firstname,
         parentName: user.name,
-        child: criteria.child,
+        child: criteria.childName,
         establishmentName: establishment.name,
         establishmentZip: establishment.zip,
         status: 'pending',
@@ -33,9 +35,9 @@ export default function EstablishmentScreen({ navigation }) {
 
     makeRequest = async () => {
         try {
-            const response = await fetch('http://192.168.1.154:3000/reservations', {
+            const response = await fetch(`http://${serveurIP}:3000/reservations`, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(reservationData),
             });
             const data = await response.json();
@@ -43,11 +45,30 @@ export default function EstablishmentScreen({ navigation }) {
         } catch (error) {
             console.error('Error:', error);
         }
+        navigation.navigate('Validation');
     };
 
+    const images = {
+        1: require(`../assets/etablissements/image1.png`),
+        2: require(`../assets/etablissements/image2.png`),
+        3: require(`../assets/etablissements/image3.png`),
+        4: require(`../assets/etablissements/image4.png`),
+        5: require(`../assets/etablissements/image5.png`),
+        6: require(`../assets/etablissements/image6.png`),
+        7: require(`../assets/etablissements/image7.png`),
+        8: require(`../assets/etablissements/image8.png`),
+        9: require(`../assets/etablissements/image9.png`),
+        10: require(`../assets/etablissements/image10.png`),
+        11: require(`../assets/etablissements/image11.png`),
+        12: require(`../assets/etablissements/image12.png`),
+        13: require(`../assets/etablissements/image13.png`),
+        14: require(`../assets/etablissements/image14.png`),
+    }
+
     const gallery = establishment.gallery.map((image, i) => {
+        const randomNumber = Math.floor(Math.random() * 14) + 1; // génère un nombre entre 1 et 14
         return (
-            <Image key={i} source={{ uri: image.image}} style={styles.images}/>
+            <Image key={i} source={images[randomNumber]} style={styles.images} />
         )
     })
 
@@ -62,34 +83,39 @@ export default function EstablishmentScreen({ navigation }) {
             source={require('../assets/background.png')}
             style={styles.background}
         >
-            <FontAwesome5 style={styles.return} name="chevron-left" size={30} color="#FFFFFF" onPress={() => {navigation.navigate('Search')}}/>
+            <FontAwesome5 style={styles.return} name="chevron-left" size={30} color="#FFFFFF" onPress={() => { navigation.navigate('Search') }} />
             <Text style={styles.title}>BUBBLE</Text>
             <View style={styles.content}>
                 <ScrollView horizontal={true} contentContainerStyle={styles.gallery}>
                     {gallery}
                 </ScrollView>
-                <ScrollView contentContainerStyle={styles.informations}>
+                <ScrollView
+                    contentContainerStyle={[styles.informations, { flexGrow: 1, paddingHorizontal: 20 }]}
+                    nestedScrollEnabled={true}
+                >
                     <View style={styles.typeContainer}>
-                        <FontAwesome5 style={styles.iconType} name="igloo" size={30} color="#FFFFFF"/>
-                        <Text style={styles.textType}>{establishment.type}</Text>
+                        <FontAwesome5 style={styles.iconType} name="igloo" size={30} color="#FFFFFF" />
+                        <Text style={styles.textType}>{establishment.name}</Text>
                     </View>
                     <Text style={styles.descriptionContainer}>{establishment.description}</Text>
                     <View style={styles.locationContainer}>
-                        <FontAwesome5 style={styles.iconType} name="map-marker-alt" size={30} color="#FFFFFF"/>
-                        <Text style={styles.textLocation}>{establishment.address}, {establishment.zip} {establishment.city}</Text>
+                        <FontAwesome5 style={styles.iconType} name="map-marker-alt" size={30} color="#FFFFFF" />
+                        <Text style={styles.textLocation}>
+                            {establishment.address}, {establishment.zip} {establishment.city}
+                        </Text>
                     </View>
                     <View style={styles.schedulesContainer}>
-                        <FontAwesome5 style={styles.iconType} name="clock" size={30} color="#FFFFFF"/>
-                        <View style={styles.schedules}>
-                            {schedules}
-                        </View>
+                        <FontAwesome5 style={styles.iconType} name="clock" size={30} color="#FFFFFF" />
+                        <View style={styles.schedules}>{schedules}</View>
                     </View>
                     <View style={styles.capacityContainer}>
-                        <FontAwesome5 style={styles.iconType} name="baby-carriage" size={30} color="#FFFFFF"/>
-                        <Text style={styles.textType}>Capacité de {establishment.capacity} enfants maximum</Text>
+                        <FontAwesome5 style={styles.iconType} name="baby-carriage" size={30} color="#FFFFFF" />
+                        <Text style={styles.textType}>
+                            Capacité de {establishment.capacity} enfants maximum
+                        </Text>
                     </View>
                     <View style={styles.buttonContainer}>
-                        <TouchableOpacity style={styles.buttonContact}>
+                        <TouchableOpacity style={styles.buttonContact} onPress={() => navigation.navigate('Contact')}>
                             <Text style={styles.buttonContactText}>Contacter</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.buttonRequest} onPress={makeRequest}>
@@ -138,10 +164,9 @@ const styles = StyleSheet.create({
         margin: 5,
     },
     informations: {
-        flex: 1,
-        // backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        borderRadius: 10,
-        width: Dimensions.get('window'),
+        flexGrow: 1,
+        paddingVertical: 10,
+        paddingHorizontal: 20,
     },
     typeContainer: {
         flexDirection: 'row',
@@ -153,22 +178,30 @@ const styles = StyleSheet.create({
     textLocation: {
         color: '#FFFFFF',
         marginHorizontal: 20,
+        fontWeight: 600,
+        fontSize: 22,
     },
     textType: {
         color: "#FFFFFF",
         marginHorizontal: 11,
+        fontWeight: 600,
+        fontSize: 22,
+        marginRight: 20,
     },
     descriptionContainer: {
         color: "#FFFFFF",
         marginLeft: 55,
+        marginRight: 20,
         marginTop: 10,
+        fontWeight: 400,
+        fontSize: 22,
     },
     locationContainer: {
         flexDirection: 'row',
         justifyContent: 'left',
         alignItems: 'center',
         marginLeft: 10,
-        marginTop: 30,
+        marginTop: 30
     },
     schedulesContainer: {
         flexDirection: 'row',
@@ -182,7 +215,9 @@ const styles = StyleSheet.create({
         marginHorizontal: 13,
     },
     scheduleText: {
-        color: '#FFFFFF'
+        color: '#FFFFFF',
+        fontWeight: 400,
+        fontSize: 20,
     },
     capacityContainer: {
         flexDirection: 'row',

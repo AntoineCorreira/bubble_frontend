@@ -12,6 +12,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "extra": {
+      "serveur_IP": "process.env.EXPO_PUBLIC_SERVEUR_IP"
+    },
     "ios": {
       "supportsTablet": true
     },

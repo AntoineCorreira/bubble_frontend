@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-const MessageScreen = () => {
+const ProfilScreen = () => {
     return (
         <View style={styles.container}>
             <Text style={styles.screenTitle}>Nom du Screen</Text>
@@ -24,4 +24,4 @@ screenTitle: {
 
 });
 
-export default MessageScreen;
+export default ProfilScreen;

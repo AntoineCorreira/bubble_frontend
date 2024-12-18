@@ -7,6 +7,8 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 
+const serveurIP = process.env.EXPO_PUBLIC_SERVEUR_IP;
+
 // Fonction pour calculer la distance entre deux points GPS
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371;
@@ -19,6 +21,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 
 const LocationScreen = ({ navigation, route }) => {
     const dispatch = useDispatch();
+    const user = useSelector((state) => state.user.value); // Type par défaut depuis user store
     const [viewMode, setViewMode] = useState('list');
     const [location, setLocation] = useState(null);
     const [selectedEstablishment, setSelectedEstablishment] = useState(null);
@@ -67,7 +70,7 @@ const LocationScreen = ({ navigation, route }) => {
         const query = queryParts.join('&');
         // console.log('Requête URL construite:', query);
 
-        fetch(`http://192.168.1.154:3000/establishments?${query}`)
+        fetch(`http://${serveurIP}:3000/establishments?${query}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -124,9 +127,32 @@ const LocationScreen = ({ navigation, route }) => {
     
     
 
+
     const isValidLocation = (latitude, longitude) => {
         return latitude && longitude && !isNaN(latitude) && !isNaN(longitude);
     };
+
+    const randomNumber = () => {
+        const number = Math.floor(Math.random() * 14) + 1; // génère un nombre entre 1 et 14
+        return number
+    }
+
+    const images = {
+        1: require(`../assets/etablissements/image1.png`),
+        2: require(`../assets/etablissements/image2.png`),
+        3: require(`../assets/etablissements/image3.png`),
+        4: require(`../assets/etablissements/image4.png`),
+        5: require(`../assets/etablissements/image5.png`),
+        6: require(`../assets/etablissements/image6.png`),
+        7: require(`../assets/etablissements/image7.png`),
+        8: require(`../assets/etablissements/image8.png`),
+        9: require(`../assets/etablissements/image9.png`),
+        10: require(`../assets/etablissements/image10.png`),
+        11: require(`../assets/etablissements/image11.png`),
+        12: require(`../assets/etablissements/image12.png`),
+        13: require(`../assets/etablissements/image13.png`),
+        14: require(`../assets/etablissements/image14.png`),
+    }
 
     // Préparer la liste des établissements avec leurs distances depuis la position actuelle
     const establishmentList = location
@@ -146,9 +172,10 @@ const LocationScreen = ({ navigation, route }) => {
                 return { ...establishment, distance, i }; // Ajouter la distance et l'index aux données
             })
             .sort((a, b) => a.distance - b.distance) // Trier par distance croissante
-            .map((establishment, i) => (
-                <View key={i} style={styles.establishmentItem}>
-                    <Image source={{ uri: establishment.image }} style={styles.establishmentImage} />
+            .map((establishment, i) => {
+                return (
+                <TouchableOpacity key={i} style={styles.establishmentItem} onPress={() => { addEstablishmentToStore(establishment) }}>
+                    <Image source={images[randomNumber()]} style={styles.establishmentImage} />
                     <View style={styles.description}>
                         <View style={styles.nameAndDistance}>
                             <Text style={styles.itemName}>
@@ -166,9 +193,10 @@ const LocationScreen = ({ navigation, route }) => {
                                 : establishment.description}
                         </Text>
                     </View>
-                    <FontAwesome name="plus-circle" size={30} color="#98B9F2" onPress={() => { addEstablishmentToStore(establishment) }} />
-                </View>
-            ))
+
+                </TouchableOpacity>
+                )
+            })
         : null; // Ne pas afficher la liste si location est null
 
     const mapMarkers = location
@@ -211,7 +239,7 @@ const LocationScreen = ({ navigation, route }) => {
                 <View style={styles.inputContainer}>
                     <TextInput
                         style={styles.input}
-                        placeholder="City . Period . Type"
+                        placeholder="Ville . Période . Type de garde"
                         placeholderTextColor="#999999"
                         onFocus={() => navigation.navigate('Filter')}
                     />
@@ -259,9 +287,9 @@ const LocationScreen = ({ navigation, route }) => {
                         </MapView>
 
                         {selectedEstablishment && (
-                            <View style={styles.selectedEstablishment}>
+                            <TouchableOpacity style={styles.selectedEstablishment} onPress={() => { addEstablishmentToStore(selectedEstablishment) }}>
                                 <Image
-                                    source={{ uri: selectedEstablishment.image }}
+                                    source={images[randomNumber()]}
                                     style={styles.establishmentImage}
                                 />
                                 <View style={styles.description}>
@@ -272,8 +300,7 @@ const LocationScreen = ({ navigation, route }) => {
                                         {selectedEstablishment.description}
                                     </Text>
                                 </View>
-                                <FontAwesome name="plus-circle" size={30} color="#98B9F2" onPress={() => { addEstablishmentToStore(selectedEstablishment) }} />
-                            </View>
+                            </TouchableOpacity>
                         )}
                     </View>
                 )}
@@ -336,19 +363,19 @@ const styles = StyleSheet.create({
         borderColor: '#FFFFFF',
         marginHorizontal: 5,
     },
-    activeButton: {
+    inactiveButton: {
         backgroundColor: '#FFFFFF',
         borderColor: '#98B9F2',
     },
-    inactiveButton: {
+    activeButton: {
         backgroundColor: '#98B9F2',
         borderColor: '#FFFFFF',
         borderWidth: 2,
     },
-    buttonTextActive: {
+    buttonTextInactive: {
         color: '#98B9F2',
     },
-    buttonTextInactive: {
+    buttonTextActive: {
         color: '#FFFFFF',
     },
     input: {
