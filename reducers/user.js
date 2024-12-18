@@ -13,6 +13,7 @@ const initialState = {
   phone: null,
   type: null,
   children: null,
+  _id: null,
 },
 };
 
@@ -32,7 +33,8 @@ export const nomDuReducerSlice = createSlice({
      state.value.zip = action.payload.zip,
      state.value.phone = action.payload.phone,
      state.value.type = action.payload.type,
-     state.value.children = action.payload.children
+     state.value.children = action.payload.children,
+     state.value._id = action.payload._id
    },
    logout : (state) =>{
     state.value.token = null;
@@ -46,6 +48,7 @@ export const nomDuReducerSlice = createSlice({
      state.value.phone = null;
      state.value.type = null;
      state.value.children = null;
+     state.value._id = null;
    }
  },
 });

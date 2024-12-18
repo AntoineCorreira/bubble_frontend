@@ -23,6 +23,7 @@ export default function LoginScreen({ navigation }) {
     const [passwordSignin, setPasswordSignin] = useState('')
     //etats qui sert a envoyer un message si le email ou mot de passe pas valide
     const [emailError, setEmailError] = useState(false);
+    const [emailError1, setEmailError1] = useState(false);
     const [emailError2, setEmailError2] = useState(false);
     //etat pour recup info user avec connection google
     const [user, setUser] = React.useState(null);
@@ -38,13 +39,13 @@ export default function LoginScreen({ navigation }) {
                 body: JSON.stringify({email: emailSignup, password : passwordSignup})
             })
             .then(response => response.json())
-            .then(data=>{
+            .then(data=>{ console.log(data)
                 if(data.result){
                     dispatch(login({email: emailSignup, token : data.token}))
                     navigation.navigate('Info');
                     setEmailSignup(emailSignup === '');
                     setPasswordSignup(passwordSignup === '');   
-                }
+                }else{setEmailError1('true')}
             })
          }else{
            setEmailError(true)
@@ -61,7 +62,7 @@ export default function LoginScreen({ navigation }) {
               })
                 .then(response => response.json())
                 .then(data=>{
-                if(data.result){ 
+                if(data.result){  console.log('fetch sigin' ,data)
                 navigation.navigate('TabNavigator', { screen: 'Search' });
                 setEmailSignin(emailSignin === '');
                 setPasswordSignin(passwordSignin === '');
@@ -78,6 +79,7 @@ export default function LoginScreen({ navigation }) {
                               phone: data.phone,
                               type: data.type,
                               children: data.children,
+                              _id : data._id
                             })
                           );
                 }else{ 
@@ -125,20 +127,17 @@ React.useEffect(() => {
               <Text style={styles.text}>Créé un compte</Text>
               <TextInput style={styles.input} onChangeText={(value)=>setEmailSignup(value)} value={ emailSignup } placeholder='Email' placeholderTextColor='#999999'/>
                 {emailError && <Text style={styles.errorText}>Email pas valide</Text>}
+                {emailError1 && <Text style={styles.errorText}>Email déja utilisée</Text>}
               <TextInput style={styles.input} onChangeText={(value)=>setPasswordSignup(value)} value={ passwordSignup } placeholder='Mot de passe' placeholderTextColor='#999999'/>
               <View style={styles.buttonContainer}>
                 <TouchableOpacity onPress={() => handleSubmit()} style={styles.button} activeOpacity={0.8}>
                 <Text style={styles.textButton}>S'inscrire</Text>
                 </TouchableOpacity>
-              
-                <TouchableOpacity onPress={() => navigation.navigate('TabNavigator', { screen: 'Search' })} style={styles.button} activeOpacity={0.8}>
-                <Text style={styles.textButton}>S'inscrire avec Google</Text>
-                </TouchableOpacity>
               </View>
             </View>
 
             <View style={styles.loginContainer}>
-              <Text style={styles.text}>Ce connecter</Text>
+              <Text style={styles.text}>Se connecter</Text>
               <TextInput style={styles.input} onChangeText={(value)=>setEmailSignin(value)} value={ emailSignin } placeholder='Email' placeholderTextColor='#999999'/>
               <TextInput style={styles.input} onChangeText={(value)=>setPasswordSignin(value)} value={ passwordSignin } placeholder='Mot de passe' placeholderTextColor='#999999'/>
               {emailError2 && <Text style={styles.errorText}>Email ou mot de passe non valide</Text>}

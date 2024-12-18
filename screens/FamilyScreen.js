@@ -26,6 +26,7 @@ export default function FamilyScreen({navigation}) {
   const [selectedValue, setSelectedValue] = useState("");
   // toujours l utilisation de useSelector() pour s'identifié avec le token
   const user = useSelector((state) => state.user.value);
+  console.log('FamilyScreen', user)
   const dispatch = useDispatch();
   // creation de la fonction pour l ajout des données de l enfant grace a la route  POST/addChild
   const handleSubmit = (change) => {
@@ -41,7 +42,7 @@ export default function FamilyScreen({navigation}) {
       }),
     })
       .then((response) => response.json())
-      .then((data) => {
+      .then((data) => { console.log('familyScreen',data.donnee)
           change === false && navigation.navigate('TabNavigator', { screen: 'Search' });
           setNameChild(nameChild === "")
           setFirstnameChild(firstnameChild === "")
@@ -59,6 +60,7 @@ export default function FamilyScreen({navigation}) {
               phone: data.donnee.phone,
               type: data.donnee.type,
               children: data.donnee.children,
+              _id: data.donnee._id
             })
           );
       });
@@ -82,7 +84,7 @@ export default function FamilyScreen({navigation}) {
           <Text style={styles.text1}>Ma famille</Text>
           <Text style={styles.text2}>Vous avez pour le moment {user.children.length} enfants ajouté</Text>
         </View>
-        <View style={styles.inputContainer}>
+        <View >
           <TextInput
             style={styles.input}
             onChangeText={(value) => setNameChild(value)}
@@ -240,7 +242,7 @@ const styles = StyleSheet.create({
     width: 347,
     height: 40,
     backgroundColor: "#FFFFFF",
-    borderRadius: 10, // Double du height pour une forme arrondie
+    borderRadius: 10, 
     overflow: "hidden", // Important pour appliquer le borderRadius
     borderWidth: 1,
     borderColor: "#ccc",
