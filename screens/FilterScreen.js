@@ -27,7 +27,7 @@ const getDayOfWeek = (dateString) => {
 const serveurIP = process.env.EXPO_PUBLIC_SERVEUR_IP;
 
 const FilterScreen = ({ navigation, background = require('../assets/background.png') }) => {
-  const userId = useSelector(state => state.user.value._id); // Accéder à l'ID de l'utilisateur connecté
+  const userId = useSelector(state => state.user.id); // Accéder à l'ID de l'utilisateur connecté
   const dispatch = useDispatch();
 
   const [selectedMenu, setSelectedMenu] = useState('Ponctuelle');
@@ -101,9 +101,13 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
       days: daysOfWeek.join(', '),
       type: selectedTypes.join(', '),
       children: selectedChildren.join(', '),
+      startDate: selectedStartDate,
+      endDate: selectedEndDate,
     };
 
     dispatch(setSearchCriteria(criteria));
+    setModalVisible(false); // Fermer la modale après l'enregistrement
+    setModalChildrenVisible(false); // Fermer la modale des enfants après l'enregistrement
     setModalVisible(false); // Fermer la modale des types après l'enregistrement
     setModalChildrenVisible(false); // Fermer la modale des enfants après l'enregistrement
   };
@@ -117,6 +121,8 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
       days: daysOfWeek.join(', '),
       type: selectedTypes.join(', '),
       children: selectedChildren.join(', '),
+      startDate: selectedStartDate,
+      endDate: selectedEndDate,
     };
 
     console.log('Critères envoyés:', criteria);
@@ -130,14 +136,18 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
         return response.json();
       })
       .then(data => {
+        console.log('Données reçues du backend:', data);
+
         if (data && data.establishments && Array.isArray(data.establishments)) {
           if (data.establishments.length === 0) {
             Alert.alert("Aucun établissement", "Aucun établissement n'est ouvert aux dates sélectionnées.");
           } else {
+            console.log('Établissements disponibles:', data.establishments);
             setEstablishmentsData(data.establishments);
             navigation.navigate('Location'); // Naviguer vers LocationScreen
           }
         } else {
+          console.error('Format de données inattendu ou établissements non définis:', data);
           Alert.alert("Erreur", "Format de données inattendu ou établissements non définis.");
         }
       })
@@ -223,6 +233,7 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
   const handleCloseChildrenModal = () => {
     setModalChildrenVisible(false);
   };
+
 
   return (
     <ImageBackground source={background} style={styles.background}>
@@ -413,9 +424,6 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
     </ImageBackground>
   );
 };
-
-
-
 
 
 const styles = StyleSheet.create({
