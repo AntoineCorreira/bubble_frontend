@@ -1,5 +1,5 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { View } from 'react-native';
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -7,9 +7,8 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import user from './reducers/user';
-import searchCriteria from './reducers/searchCriteria'; // Importer searchCriteria
-import establishment from './reducers/establishment'; // Importer establishment
-
+import searchCriteria from './reducers/searchCriteria';
+import establishment from './reducers/establishment';
 import LoginScreen from './screens/LoginScreen';
 import CoordonneeScreen from './screens/CoordonneeScreen';
 import FamilyScreen from './screens/FamilyScreen';
@@ -18,7 +17,6 @@ import FilterScreen from './screens/FilterScreen';
 import EstablishmentScreen from './screens/EstablishmentScreen';
 import ContactScreen from './screens/ContactScreen';
 import ValidationScreen from './screens/ValidationScreen';
-import MessageScreen from './screens/MessageScreen';
 import ProfilScreen from './screens/ProfilScreen';
 import ReservationScreen from './screens/ReservationScreen';
 import ObligatoryFilterScreen from './screens/ObligatoryFilterScreen'; 
@@ -35,6 +33,7 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -43,8 +42,6 @@ const TabNavigator = () => {
 
           if (route.name === 'Search') {
             iconName = 'search';
-          } else if (route.name === 'Message') {
-            iconName = 'envelope';
           } else if (route.name === 'Reservation') {
             iconName = 'check';
           } else if (route.name === 'Profil') {
@@ -84,7 +81,6 @@ const TabNavigator = () => {
       })}
     >
       <Tab.Screen name="Search" component={LocationScreen} />
-      <Tab.Screen name="Message" component={MessageScreen} />
       <Tab.Screen name="Reservation" component={ReservationScreen} />
       <Tab.Screen name="Profil" component={ProfilScreen} />
     </Tab.Navigator>

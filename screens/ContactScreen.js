@@ -13,19 +13,11 @@ export default function ContactScreen({ navigation }) {
     const establishment = useSelector((state) => state.establishment.value);
     console.log('Establishment:', establishment);
     const user = useSelector((state) => state.user.value);
-    // const searchCriteria = useSelector((state) => state.searchCriteria.value)
-
-    const searchCriteria = {
-        city: 'Bordeaux',
-        startDate: '13/12/2024',
-        endDate: '13/12/2024',
-        childName: 'Lio'
-    }
+    const searchCriteria = useSelector((state) => state.searchCriteria.value)
 
     const defaultMessage = `Bonjour,
 
-Je souhaite faire garder mon enfant ${searchCriteria.childName} sur la période du ${searchCriteria.startDate} au 
-${searchCriteria.endDate} dans votre crèche. 
+Je souhaite faire garder mon enfant sur la période du 18 au 24 avril dans votre crèche. 
 
 Pouvez-vous me confirmer qu'il est possible pour vous
 d'accueillir mon enfant sur cette période ?
@@ -52,10 +44,6 @@ ${user.firstname} ${user.name}`;
         .catch(error => {
             console.error('Error:', error);
         });
-        console.log(establishment.mail)
-        console.log(email)
-        console.log(object)
-        console.log(message)
     };
 
     return (
@@ -68,7 +56,7 @@ ${user.firstname} ${user.name}`;
                 name="chevron-left"
                 size={30}
                 color="#FFFFFF"
-                onPress={() => navigation.navigate('Search')}
+                onPress={() => navigation.navigate('Establishment')}
             />
             <Text style={styles.title}>BUBBLE</Text>
             <View style={styles.content}>
