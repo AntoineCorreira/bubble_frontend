@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux';
 import { login } from '../reducers/user';
 import * as Font from 'expo-font';
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import { faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons'
 // import pour la connection google
 import { useAuthRequest } from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
@@ -33,7 +35,7 @@ export default function LoginScreen({ navigation }) {
   //etat pour recup info user avec connection google
   const [user, setUser] = React.useState(null);
   const dispatch = useDispatch();
-
+  const [showPassword, setShowPassword] = useState(false); 
   // importer la police du titre 
   useEffect(() => {
     const loadFonts = async () => {
@@ -119,7 +121,6 @@ export default function LoginScreen({ navigation }) {
      useEffect(() => {
     if (response?.type === 'success') {
       const { access_token } = response.params;
-   console.log( access_token)
       // Récupérer les informations utilisateur
       fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
         headers: { Authorization: `Bearer ${access_token}` },
@@ -133,20 +134,28 @@ export default function LoginScreen({ navigation }) {
     }
   }, []);
 
+  const handlePasswordVisibility = () => {
+    setShowPassword(!showPassword); // Inverse l'état pour afficher ou masquer le mot de passe
+  };
+
   return (
 
     <ImageBackground style={styles.imageBackground} source={require('../assets/background.png')}>
       <KeyboardAvoidingView style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'} // Différent comportement pour iOS et Android
       >
-
         <Text style={styles.title}>BUBBLE</Text>
         <View style={styles.logoutContainer}>
           <Text style={styles.text}>S'INSCRIRE</Text>
           <TextInput style={styles.input} onChangeText={(value) => setEmailSignup(value)} value={emailSignup} placeholder='Email' placeholderTextColor='#999999' />
           {emailError && <Text style={styles.errorText}>Email pas valide</Text>}
           {emailError1 && <Text style={styles.errorText}>Email déja utilisée</Text>}
-          <TextInput style={styles.input} onChangeText={(value) => setPasswordSignup(value)} value={passwordSignup} placeholder='Mot de passe' placeholderTextColor='#999999' secureTextEntry={true} />
+          <View style={styles.inputContainer}>
+          <TextInput style={styles.inputEyes} onChangeText={(value) => setPasswordSignup(value)} value={passwordSignup} placeholder='Mot de passe' placeholderTextColor='#999999' secureTextEntry={showPassword} />
+          <TouchableOpacity onPress={handlePasswordVisibility} >
+          <FontAwesomeIcon icon={showPassword ? faEye : faEyeSlash} style={styles.icon} size={25} color="black" />
+          </TouchableOpacity>
+          </View>
           <View style={styles.buttonContainer}>
             <TouchableOpacity onPress={() => handleSubmit()} style={styles.button} activeOpacity={0.8}>
               <Text style={styles.textButton}>S'inscrire</Text>
@@ -157,7 +166,12 @@ export default function LoginScreen({ navigation }) {
         <View style={styles.loginContainer}>
           <Text style={styles.text}>SE CONNECTER</Text>
           <TextInput style={styles.input} onChangeText={(value) => setEmailSignin(value)} value={emailSignin} placeholder='Email' placeholderTextColor='#999999' />
-          <TextInput style={styles.input} onChangeText={(value) => setPasswordSignin(value)} value={passwordSignin} placeholder='Mot de passe' placeholderTextColor='#999999' secureTextEntry={true} />
+          <View style={styles.inputContainer}>
+          <TextInput style={styles.inputEyes} onChangeText={(value) => setPasswordSignin(value)} value={passwordSignin} placeholder='Mot de passe' placeholderTextColor='#999999' secureTextEntry={showPassword} />
+          <TouchableOpacity onPress={handlePasswordVisibility} >
+          <FontAwesomeIcon icon={showPassword ? faEye : faEyeSlash} style={styles.icon} size={25} color="black" />
+          </TouchableOpacity>
+          </View>
           {emailError2 && <Text style={styles.errorText}>Email ou mot de passe non valide</Text>}
           <View style={styles.buttonContainer}>
             <TouchableOpacity onPress={() => handleLogin()} style={styles.buttonConnexion} activeOpacity={0.8}>
@@ -245,6 +259,22 @@ const styles = StyleSheet.create({
     marginTop: 14,
     fontSize: 16,
   },
+  inputContainer: {
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: 347,
+    height: 51,
+    paddingLeft: 20,
+    borderRadius: 10,
+    marginTop: 10,
+    backgroundColor: '#FFFFFF',
+  },
+  icon: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
   button: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -283,5 +313,9 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: 'red'
+  },
+  inputEyes: {
+    fontSize: 16,
+    flex: 1
   }
 })

@@ -13,6 +13,7 @@ const ReservationScreen = () => {
   const [reservations, setReservation] = useState([])
   const focused = useIsFocused()
   const User = useSelector((state) => state.user.value)
+  console.log(User)
   useEffect(() => {
     fetch(`http://${serveurIP}:3000/reservations/allReservations`, {
       method: "POST",
