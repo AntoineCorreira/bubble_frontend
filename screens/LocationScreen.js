@@ -110,6 +110,8 @@ const LocationScreen = ({ navigation, route }) => {
         navigation.navigate('Establishment');
     };
 
+
+
     const isValidLocation = (latitude, longitude) => {
         return latitude && longitude && !isNaN(latitude) && !isNaN(longitude);
     };
