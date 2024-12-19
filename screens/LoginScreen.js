@@ -178,9 +178,9 @@ export default function LoginScreen({ navigation }) {
             <TouchableOpacity onPress={() => handleLogin()} style={styles.buttonConnexion} activeOpacity={0.8}>
               <Text style={styles.textButtonConnexion}>Se connecter</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => promptAsync()} style={styles.buttonGoogle} activeOpacity={0.8}>
+            {/* <TouchableOpacity onPress={() => promptAsync()} style={styles.buttonGoogle} activeOpacity={0.8}>
               <Text style={styles.textButtonGoogle}>Se connecter avec Google</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
       </KeyboardAvoidingView>
