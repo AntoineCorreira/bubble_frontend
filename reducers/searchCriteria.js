@@ -12,6 +12,7 @@ const searchCriteriaSlice = createSlice({
     selectedEstablishment: null, // Établissement sélectionné
   },
   reducers: {
+    // Met à jour tous les critères de recherche
     setSearchCriteria: (state, action) => {
       const { city, days, type, startDate, endDate, children } = action.payload;
 
@@ -27,18 +28,17 @@ const searchCriteriaSlice = createSlice({
       );
     },
     setSelectedEstablishment: (state, action) => {
-      state.selectedEstablishment = action.payload; // Mettre à jour l'établissement sélectionné
+      state.selectedEstablishment = action.payload; 
     },
+
+    // Réinitialise l'établissement sélectionné
     resetSelectedEstablishment: (state) => {
-      state.selectedEstablishment = null; // Réinitialiser l'établissement sélectionné
+      state.selectedEstablishment = null;
     },
   },
 });
 
-export const { 
-  setSearchCriteria, 
-  setSelectedEstablishment, 
-  resetSelectedEstablishment 
-} = searchCriteriaSlice.actions;
-
+// Export des actions et du reducer
+export const { setSearchCriteria, setSelectedEstablishment, resetSelectedEstablishment } = searchCriteriaSlice.actions;
 export default searchCriteriaSlice.reducer;
+

@@ -50,21 +50,21 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
   const [children, setChildren] = useState([]); // Liste des enfants
   const [selectedChildren, setSelectedChildren] = useState([]); // Enfants sélectionnés
 
-  // Récupération des villes avec filtre dynamique
-  useEffect(() => {
-    const fetchCities = () => {
-      const searchQuery = selectedCity || ''; // Si l'utilisateur a saisi une ville
-      fetch(`http://${serveurIP}:3000/establishments/city?q=${encodeURIComponent(searchQuery)}`)
-        .then(response => response.json())
-        .then(data => setCities(data))
-        .catch(error => {
-          console.error('Erreur lors de la récupération des villes:', error);
-          Alert.alert("Erreur", "Impossible de récupérer les villes.");
-        });
-    };
+// Récupération des villes avec filtre dynamique
+useEffect(() => {
+  const fetchCities = () => {
+    const searchQuery = selectedCity || ''; // Si l'utilisateur a saisi une ville
+    fetch(`http://${serveurIP}:3000/establishments/city?q=${encodeURIComponent(searchQuery)}`)
+      .then(response => response.json())
+      .then(data => setCities(data))
+      .catch(error => {
+        console.error('Erreur lors de la récupération des villes:', error);
+        Alert.alert("Erreur", "Impossible de récupérer les villes.");
+      });
+  };
 
-    fetchCities();
-  }, [selectedCity]);
+  fetchCities();
+}, [selectedCity]);
 
 
   // Récupération des types de garde au clic sur l'icône de filtre
@@ -125,19 +125,17 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
 
   // Soumission du formulaire avec recherche d'établissements
   const handleSubmit = () => {
-    // Convertir les dates sélectionnées en jours de la semaine
-    const daysOfWeek = selectedDays.map(date => getDayOfWeek(date));
     const criteria = {
       city: selectedCity,
-      days: daysOfWeek.join(', '),
+      days: selectedDays.map(date => getDayOfWeek(date)).join(', '),
       type: selectedTypes.join(', '),
       children: selectedChildren.join(', '),
       startDate: selectedStartDate,
       endDate: selectedEndDate,
     };
-
-    console.log('Critères envoyés:', criteria);
-
+  
+    console.log('Critères envoyés dans FilterScreen:', criteria);
+  
     fetch(`http://${serveurIP}:3000/establishments?city=${encodeURIComponent(criteria.city)}&days=${encodeURIComponent(criteria.days)}&type=${encodeURIComponent(criteria.type)}&children=${encodeURIComponent(criteria.children)}`)
       .then(response => {
         if (!response.ok) {
@@ -157,7 +155,7 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
           } else {
             console.log('Établissements disponibles:', data.establishments);
             setEstablishmentsData(data.establishments);
-            navigation.navigate('Location'); // Naviguer vers LocationScreen
+            navigation.navigate('Location');
           }
         } else {
           console.error('Format de données inattendu ou établissements non définis:', data);
@@ -168,15 +166,15 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
         console.error('Erreur lors de la récupération des établissements:', error);
         Alert.alert("Erreur", "Impossible de récupérer les établissements.");
       });
-
-    dispatch(setSearchCriteria(criteria));
+  
+    dispatch(setSearchCriteria(criteria)); // Mettre à jour les critères de recherche dans Redux
   };
 
 
   // Gestion de la sélection des dates
   const handleDateChange = (day) => {
     const dayString = day.dateString;
-
+  
     // Si la date de début n'est pas encore sélectionnée, elle devient la date de début
     if (!selectedStartDate || (selectedEndDate && !selectedStartDate)) {
       setSelectedStartDate(dayString);
@@ -189,30 +187,30 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
       setSelectedStartDate(dayString);
       setSelectedEndDate('');
     }
-
+  
     // Ajouter une vérification de date de fin avant date de début
     if (selectedEndDate && selectedStartDate && selectedEndDate < selectedStartDate) {
       Alert.alert("Erreur", "La date de fin ne peut pas être avant la date de début.");
       setSelectedEndDate(''); // Réinitialiser la date de fin si elle est invalide
     }
   };
-
+  
   const getMarkedDates = () => {
     const markedDates = {};
-
+  
     // Vérification de la validité des dates
     if (!selectedStartDate || !selectedEndDate) return markedDates;
-
+  
     const startDate = new Date(selectedStartDate);
     const endDate = new Date(selectedEndDate);
-
+  
     if (startDate > endDate) {
       Alert.alert("Erreur", "La date de fin ne peut pas être avant la date de début.");
       return markedDates; // Retourner un objet vide si la date de fin est invalide
     }
-
+  
     let currentDate = startDate;
-
+  
     while (currentDate <= endDate) {
       const dayString = currentDate.toISOString().split('T')[0]; // Formater la date en YYYY-MM-DD
       markedDates[dayString] = {
@@ -222,7 +220,7 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
       };
       currentDate.setDate(currentDate.getDate() + 1); // Avancer d'un jour
     }
-
+  
     return markedDates;
   };
 
