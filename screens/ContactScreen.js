@@ -39,7 +39,10 @@ ${user.firstname} ${user.name}`;
         })
         .then(response => response.json())
         .then(data => {
-            console.log(data)
+            if(data) {
+                console.log(data)
+                navigation.navigate('Validation');
+            }
         })
         .catch(error => {
             console.error('Error:', error);

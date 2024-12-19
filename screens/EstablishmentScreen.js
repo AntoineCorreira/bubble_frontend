@@ -1,22 +1,17 @@
 import { View, Text, StyleSheet, ImageBackground, TextInput, Image, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { resetSearchCriteria } from '../reducers/searchCriteria';
 
 const serveurIP = process.env.EXPO_PUBLIC_SERVEUR_IP;
 
 export default function EstablishmentScreen({ navigation }) {
+    const dispatch = useDispatch()
     const user = useSelector((state) => state.user.value)
     console.log('Reducer :', user);
     const searchCriteria = useSelector((state) => state.searchCriteria)
     console.log('Critères:', searchCriteria);
     const establishment = useSelector((state) => state.establishment.value)
-
-    // const searchCriteria = {
-    //     city: 'Paris',
-    //     startDate: '02/01/2025',
-    //     endDate: '03/01/2025',
-    //     childName: 'Alexandre'
-    // }
 
     const reservationData = {
         startDate: searchCriteria.startDate,
@@ -30,19 +25,42 @@ export default function EstablishmentScreen({ navigation }) {
     }
 
     makeRequest = async () => {
+        // Validation des critères de recherche
+        if (
+            !searchCriteria.startDate || 
+            !searchCriteria.endDate || 
+            !searchCriteria.children || 
+            searchCriteria.children <= 0
+        ) {
+            navigation.navigate('ObligatoryFilter');
+            return; // Arrête l'exécution de la fonction
+        }
+    
         try {
+            // Enregsitrement de la réservation en base
             const response = await fetch(`http://${serveurIP}:3000/reservations`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(reservationData),
             });
+    
+            // Analyse de la réponse
             const data = await response.json();
-            console.log(data);
+            if (response.ok) {
+                console.log(data);
+                navigation.navigate('Validation'); // Navigation en cas de succès
+                dispatch(resetSearchCriteria());
+            } else {
+                console.error('Erreur côté serveur:', data.message);
+                alert(`Erreur : ${data.message}`); // Affiche une alerte en cas d'erreur serveur
+            }
         } catch (error) {
-            console.error('Error:', error);
+            // Gestion des erreurs réseau
+            console.error('Erreur réseau :', error);
+            alert('Une erreur réseau est survenue. Veuillez réessayer.');
         }
-        navigation.navigate('Validation');
     };
+    
 
     const images = {
         1: require(`../assets/etablissements/image1.png`),

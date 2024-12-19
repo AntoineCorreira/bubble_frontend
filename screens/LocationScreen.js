@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { addEstablishment } from '../reducers/establishment';
-import { setSearchCriteria, setSelectedEstablishment, resetSelectedEstablishment } from '../reducers/searchCriteria';
-import * as Font from 'expo-font';
 import { View, Text, StyleSheet, ImageBackground, TextInput, Image, ScrollView, TouchableOpacity, Dimensions, Alert } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MapView, { Marker } from 'react-native-maps';
@@ -23,6 +21,14 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 
+const isEstablishmentOpen = (establishment, days) => {
+    return days.some(day => {
+        return establishment.schedules.some(schedule => {
+            return schedule.day === day && schedule.open;
+        });
+    });
+};
+
 const LocationScreen = ({ navigation, route }) => {
     const dispatch = useDispatch();
     const user = useSelector((state) => state.user.value); // Type par défaut depuis user store
@@ -32,24 +38,7 @@ const LocationScreen = ({ navigation, route }) => {
     const [establishmentsData, setEstablishmentsData] = useState([]);
     const [locationPermission, setLocationPermission] = useState(false);
     const searchCriteria = useSelector(state => state.searchCriteria);
-   
-    
-
-
-    useEffect(() => {
-        console.log("Selected Establishment in LocationScreen: ", selectedEstablishment);
-    }, [selectedEstablishment]);
-    
- // Utilisation du state Redux pour l'établissement sélectionné
-
-    useEffect(() => {
-        const loadFonts = async () => {
-            await Font.loadAsync({
-                'Lily Script One': require('../assets/fonts/LilyScriptOne-Regular.ttf'),
-            });
-        };
-        loadFonts();
-    }, []);
+    console.log(searchCriteria);
 
     useEffect(() => {
         const requestLocationPermission = async () => {
@@ -118,35 +107,6 @@ const LocationScreen = ({ navigation, route }) => {
             schedules: newEstablishment.schedules,
             capacity: newEstablishment.capacity,
         }));
-    
-        // Mise à jour de selectedEstablishment dans Redux (ajout de l'établissement sélectionné)
-        dispatch(setSelectedEstablishment(newEstablishment));  // Mise à jour de l'établissement sélectionné
-    };
-    
-    const { selectedEstablishment, startDate, endDate } = useSelector(state => state.searchCriteria);
-    
-    const handlePress = () => {
-        const isValidDate = (date) => date && !isNaN(Date.parse(date));
-    
-        console.log("Start Date from searchCriteria:", startDate);
-        console.log("End Date from searchCriteria:", endDate);
-    
-        // Vérification de la validité des dates
-        if (!isValidDate(startDate) || !isValidDate(endDate)) {
-            console.log("Les dates sont invalides.");
-            navigation.navigate('ObligatoryFilter'); // Redirige vers la page de filtrage si les dates ne sont pas valides
-            return;
-        }
-    
-        // Vérification que l'établissement sélectionné existe avant de naviguer
-        if (!selectedEstablishment) {
-            console.log("Aucun établissement sélectionné.");
-            Alert.alert("Sélectionnez un établissement", "Veuillez sélectionner un établissement avant de continuer.");
-            return;
-        }
-    
-        // Si les dates sont valides et un établissement est sélectionné, naviguez vers l'écran 'Establishment'
-        console.log("Naviguer vers Establishment avec les dates valides et établissement sélectionné");
         navigation.navigate('Establishment');
     };
 
@@ -180,7 +140,7 @@ const LocationScreen = ({ navigation, route }) => {
         ? establishmentsData
             .filter(establishment => {
                 const isCityMatch = !searchCriteria.city || establishment.city.toLowerCase() === searchCriteria.city.toLowerCase();
-                const isDateMatch = !searchCriteria.day || establishment.schedules.some(schedule => searchCriteria.day.includes(schedule.day));
+                const isDateMatch = !searchCriteria.day || isEstablishmentOpen(establishment, searchCriteria.day);
                 const isTypeMatch = !searchCriteria.type || establishment.type === searchCriteria.type;
 
                 return isCityMatch && isDateMatch && isTypeMatch;
@@ -204,7 +164,7 @@ const LocationScreen = ({ navigation, route }) => {
                             <View style={styles.nameAndDistance}>
                                 <Text style={styles.itemName}>
                                     {establishment.name.length > 50
-                                        ? establishment.name.slice(0, 50) + '...'
+                                        ? establishmentment.name.slice(0, 50) + '...'
                                         : establishment.name}
                                 </Text>
                                 <Text style={styles.distanceText}>
@@ -308,38 +268,31 @@ const LocationScreen = ({ navigation, route }) => {
                         </MapView>
 
                         {choosedEstablishment && (
-    <TouchableOpacity
-        style={styles.selectedEstablishment}
-        onPress={handlePress} // Appel à la fonction handlePress
-    >
-        <Image
-            source={images[randomNumber()]}
-            style={styles.establishmentImage}
-        />
-        <View style={styles.description}>
-            <Text style={styles.itemName}>
-                {choosedEstablishment.name}
-            </Text>
-            <Text style={styles.itemDescription}>
-                {choosedEstablishment.description}
-            </Text>
-        </View>
-    </TouchableOpacity>
-)}
+                            <TouchableOpacity
+                                style={styles.selectedEstablishment}
+                                onPress={() => {addEstablishmentToStore(choosedEstablishment)}}
+                            >
+                                <Image
+                                    source={images[randomNumber()]}
+                                    style={styles.establishmentImage}
+                                />
+                                <View style={styles.description}>
+                                    <Text style={styles.itemName}>
+                                        {choosedEstablishment.name}
+                                    </Text>
+                                    <Text style={styles.itemDescription}>
+                                        {choosedEstablishment.description}
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
+                        )}
 
-                        
                     </View>
                 )}
             </View>
         </ImageBackground>
     );
 };
-
-
-
-
-
-
 
 const styles = StyleSheet.create({
     background: {

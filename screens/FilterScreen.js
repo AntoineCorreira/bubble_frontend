@@ -66,7 +66,6 @@ useEffect(() => {
   fetchCities();
 }, [selectedCity]);
 
-
   // Récupération des types de garde au clic sur l'icône de filtre
   const handleSliderClick = () => {
     fetch(`http://${serveurIP}:3000/establishments/type`)
@@ -127,15 +126,15 @@ useEffect(() => {
   const handleSubmit = () => {
     const criteria = {
       city: selectedCity,
-      days: selectedDays.map(date => getDayOfWeek(date)).join(', '),
+      days: selectedDays.map(date => getDayOfWeek(date)),
       type: selectedTypes.join(', '),
       children: selectedChildren.join(', '),
       startDate: selectedStartDate,
       endDate: selectedEndDate,
     };
-  
+
     console.log('Critères envoyés dans FilterScreen:', criteria);
-  
+
     fetch(`http://${serveurIP}:3000/establishments?city=${encodeURIComponent(criteria.city)}&days=${encodeURIComponent(criteria.days)}&type=${encodeURIComponent(criteria.type)}&children=${encodeURIComponent(criteria.children)}`)
       .then(response => {
         if (!response.ok) {
@@ -166,15 +165,14 @@ useEffect(() => {
         console.error('Erreur lors de la récupération des établissements:', error);
         Alert.alert("Erreur", "Impossible de récupérer les établissements.");
       });
-  
+
     dispatch(setSearchCriteria(criteria)); // Mettre à jour les critères de recherche dans Redux
   };
-
 
   // Gestion de la sélection des dates
   const handleDateChange = (day) => {
     const dayString = day.dateString;
-  
+
     // Si la date de début n'est pas encore sélectionnée, elle devient la date de début
     if (!selectedStartDate || (selectedEndDate && !selectedStartDate)) {
       setSelectedStartDate(dayString);
@@ -187,30 +185,39 @@ useEffect(() => {
       setSelectedStartDate(dayString);
       setSelectedEndDate('');
     }
-  
+
     // Ajouter une vérification de date de fin avant date de début
     if (selectedEndDate && selectedStartDate && selectedEndDate < selectedStartDate) {
       Alert.alert("Erreur", "La date de fin ne peut pas être avant la date de début.");
       setSelectedEndDate(''); // Réinitialiser la date de fin si elle est invalide
     }
+
+    // Mettre à jour les jours sélectionnés
+    setSelectedDays((prevSelectedDays) => {
+      if (prevSelectedDays.includes(dayString)) {
+        return prevSelectedDays.filter(date => date !== dayString);
+      } else {
+        return [...prevSelectedDays, dayString];
+      }
+    });
   };
-  
+
   const getMarkedDates = () => {
     const markedDates = {};
-  
+
     // Vérification de la validité des dates
     if (!selectedStartDate || !selectedEndDate) return markedDates;
-  
+
     const startDate = new Date(selectedStartDate);
     const endDate = new Date(selectedEndDate);
-  
+
     if (startDate > endDate) {
       Alert.alert("Erreur", "La date de fin ne peut pas être avant la date de début.");
       return markedDates; // Retourner un objet vide si la date de fin est invalide
     }
-  
+
     let currentDate = startDate;
-  
+
     while (currentDate <= endDate) {
       const dayString = currentDate.toISOString().split('T')[0]; // Formater la date en YYYY-MM-DD
       markedDates[dayString] = {
@@ -220,10 +227,9 @@ useEffect(() => {
       };
       currentDate.setDate(currentDate.getDate() + 1); // Avancer d'un jour
     }
-  
+
     return markedDates;
   };
-
 
   // Récupération des enfants
   const handleChildrenFetch = () => {
@@ -265,7 +271,6 @@ useEffect(() => {
       });
   };
 
-
   // Sélection des enfants
   const handleChildrenCheckboxChange = (childId) => {
     setSelectedChildren((prevSelectedChildren) => {
@@ -285,7 +290,6 @@ useEffect(() => {
   const handleCloseChildrenModal = () => {
     setModalChildrenVisible(false);
   };
-
 
   return (
     <ImageBackground source={background} style={styles.background}>
@@ -329,8 +333,8 @@ useEffect(() => {
           />
         </View>
 
-        <TouchableOpacity onPress={handleChildrenFetch}>
-          <Text style={styles.childrenButtonText}>Récupérer mes enfants</Text>
+        <TouchableOpacity style={styles.fetchChildrenButton} onPress={handleChildrenFetch}>
+          <Text style={styles.childrenButtonText}>Choisir mes enfants</Text>
         </TouchableOpacity>
 
         {/* Modale pour les types de garde */}
@@ -397,10 +401,6 @@ useEffect(() => {
           </View>
         </Modal>
 
-
-
-
-
         {/* Modale pour les enfants */}
         <Modal
           animationType="slide"
@@ -465,10 +465,6 @@ useEffect(() => {
           </View>
         </Modal>
 
-
-
-
-
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
             <Text style={styles.resetButtonText}>Réinitialiser</Text>
@@ -478,13 +474,10 @@ useEffect(() => {
           </TouchableOpacity>
         </View>
 
-
-
       </View>
     </ImageBackground>
   );
 };
-
 
 const styles = StyleSheet.create({
   background: {
@@ -602,9 +595,10 @@ const styles = StyleSheet.create({
     color: '#ccc', // Couleur grise
   },
   resetButtonText: {
-    color: 'black', // Couleur noire
-    fontSize: 18, // Taille de police de 18
-    textDecorationLine: 'underline', // Texte souligné
+    fontSize: 20,
+    fontWeight: 600,
+    color: '#FFFFFF',
+    textDecorationLine: 'underline',
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -612,28 +606,31 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   submitButton: {
-    width: '48%', // Largeur de 48%
-    height: 51, // Hauteur de 51
-    borderRadius: 10, // Bordure arrondie de 10
-    backgroundColor: '#EABBFF', // Couleur de fond violet clair
-    justifyContent: 'center', // Centrer verticalement
-    alignItems: 'center', // Centrer horizontalement
-    borderColor: 'white', // Couleur de la bordure blanche
-    borderWidth: 1, // Largeur de la bordure de 1
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: '#EABBFF',
+    borderRadius: 5,
+    alignItems: 'center',
+    width: '45%', // Ajusté pour éviter le dépassement
+    height: 51,
+    borderWidth: 2,
+    borderColor: '#FFFFFF'
   },
   resetButton: {
-    width: '48%', // Largeur de 48%
-    height: 51, // Hauteur de 51
-    justifyContent: 'center', // Centrer verticalement
-    alignItems: 'center', // Centrer horizontalement
-    backgroundColor: 'transparent', // Couleur de fond transparente
-    borderRadius: 10, // Bordure arrondie de 10
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: 'transparent',
+    borderRadius: 5,
+    alignItems: 'center',
+    width: '45%', // Ajusté pour éviter le dépassement
+    height: 44,
+    borderWidth: 0,
   },
   submitButtonText: {
-    color: 'white', // Couleur du texte
-    fontWeight: 'bold', // Poids du texte en gras
+    fontSize: 20,
+    fontWeight: 600,
+    color: '#fff',
   },
-
 
   modalOverlay: {
     flex: 1, // Prend tout l'espace disponible
@@ -657,14 +654,24 @@ const styles = StyleSheet.create({
     textAlign: 'center', // Texte centré
     marginTop: 10, // Marge en haut de 10
   },
-  childrenButtonText: {
-    color: '#fff',
-    backgroundColor: '#EABBFF',
-    padding: 10,
-    borderRadius: 5,
+  fetchChildrenButton: {
     marginTop: 20,
+    padding: 10,
+    backgroundColor: '#fff',
+    borderRadius: 5,
+    alignItems: 'center',
+    width: '100%', // Ajusté pour éviter le dépassement
+    height: 44,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 2,
+    elevation: 5, // Ombre pour rendre le bouton plus cliquable
+  },
+  childrenButtonText: {
     fontSize: 16,
-    textAlign: 'center',
+    color: '#000',
+    fontWeight: 400, // Texte en gras pour plus de clarté
   },
   childrenList: {
     marginTop: 20,
@@ -678,5 +685,4 @@ const styles = StyleSheet.create({
   },
 });
 
-
-export default FilterScreen
+export default FilterScreen;
