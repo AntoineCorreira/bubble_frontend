@@ -45,33 +45,34 @@ export default function FamilyScreen({ navigation }) {
       }),
     })
       .then((response) => response.json())
-      .then((data) => { console.log('familyScreen',data.donnee)
-          change === false && navigation.navigate('TabNavigator', { screen: 'Search' });
-          setNameChild(nameChild === "")
-          setFirstnameChild(firstnameChild === "")
-          setBirthDate(birthDate === "")
-          dispatch(
-            login({
-              token: data.donnee.token,
-              email: data.donnee.email,
-              name: data.donnee.name,
-              firstname: data.donnee.firstname,
-              civility: data.donnee.civility,
-              address: data.donnee.address,
-              city: data.donnee.city,
-              zip: data.donnee.zip,
-              phone: data.donnee.phone,
-              type: data.donnee.type,
-              children: data.donnee.children,
-              _id: data.donnee._id
-            })
-          );
+      .then((data) => {
+        console.log('familyScreen', data.donnee)
+        change === false && navigation.navigate('TabNavigator', { screen: 'Search' });
+        setNameChild(nameChild === "")
+        setFirstnameChild(firstnameChild === "")
+        setBirthDate(birthDate === "")
+        dispatch(
+          login({
+            token: data.donnee.token,
+            email: data.donnee.email,
+            name: data.donnee.name,
+            firstname: data.donnee.firstname,
+            civility: data.donnee.civility,
+            address: data.donnee.address,
+            city: data.donnee.city,
+            zip: data.donnee.zip,
+            phone: data.donnee.phone,
+            type: data.donnee.type,
+            children: data.donnee.children,
+            _id: data.donnee._id
+          })
+        );
       });
   };
-   // creation d une fonction pour ajouté un document
-   const handleDocument = () =>{
+  // creation d une fonction pour ajouté un document
+  const handleDocument = () => {
 
-   }
+  }
 
   return (
     <ImageBackground
@@ -85,9 +86,15 @@ export default function FamilyScreen({ navigation }) {
         <Text style={styles.title}>BUBBLE</Text>
         <View style={styles.header}>
           <Text style={styles.text1}>Ma famille</Text>
-          <Text style={styles.text2}>Vous avez pour le moment {user.children.length} enfants ajouté</Text>
+          <Text style={styles.text2}>
+            {user.children.length === 0
+              ? "Ajouter un enfant"
+              : user.children.length === 1
+                ? "Vous avez ajouté un enfant"
+                : `Vous avez ajouté ${user.children.length} enfants ajoutés`}
+          </Text>
         </View>
-        <View >
+        <View>
           <TextInput
             style={styles.input}
             onChangeText={(value) => setNameChild(value)}
@@ -118,8 +125,8 @@ export default function FamilyScreen({ navigation }) {
           <Text style={styles.textButton}>Joindre des documents</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.iconContainer} onPress={()=>handleSubmit(true)} >
-        <FontAwesomeIcon icon={faUserPlus} style={styles.icon} size={50} color="#FFFFFF"  />
+        <TouchableOpacity style={styles.iconContainer} onPress={() => handleSubmit(true)} >
+          <FontAwesomeIcon icon={faUserPlus} style={styles.icon} size={50} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.text2}>Quelle type de garde priorisez-vous?</Text>
         <View style={styles.container}>
@@ -150,7 +157,7 @@ export default function FamilyScreen({ navigation }) {
           </View>
         </View>
         <TouchableOpacity
-          onPress={() => handleSubmit(false) }
+          onPress={() => handleSubmit(false)}
           style={styles.button}
           activeOpacity={0.8}
         >
@@ -196,39 +203,39 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     width: 347,
-    height: 40,
-    paddingRight: 30,
+    height: 51,  // Increased height for a larger input
+    paddingHorizontal: 15,  // Added horizontal padding
     backgroundColor: "#FFFFFF",
     borderRadius: 10,
-    marginTop: 10,
+    marginTop: 14,
+    fontSize: 16, // Slightly larger font size for readability
+    color: "#333333",  // Darker text for better contrast
   },
   button: {
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     width: 347,
-    height: 40,
-    paddingRight: 30,
-    backgroundColor: "#98B9F2",
+    height: 44,
+    backgroundColor: '#EABBFF',
     borderRadius: 10,
-    marginTop: 10,
+    marginTop: 14,
     borderWidth: 2,
-    borderColor: "white",
+    borderColor: 'white',
   },
   textButton: {
-    marginLeft: 20,
     textAlign: "center",
     color: "white",
-    fontWeight: "bold",
+    fontWeight: 600,
+    fontSize: 18,  // Increased font size for better readability
   },
   joinDocBtn: {
     justifyContent: "center",
     alignItems: "center",
     width: 220,
-    height: 30,
-    paddingRight: 30,
+    height: 40,  // Increased height for the button
     backgroundColor: "#98B9F2",
     borderRadius: 50,
-    marginTop: 10,
+    marginTop: 15,
     borderWidth: 2,
     borderColor: "white",
   },
@@ -236,26 +243,26 @@ const styles = StyleSheet.create({
     width: 347,
     height: 50,
     backgroundColor: "#FFFFFF",
-    borderRadius: 50,
+    borderRadius: 10,  // Adjusted radius for a sleeker look
     overflow: "hidden",
   },
   pickerContainer: {
     justifyContent: "center",
     alignItems: "center",
     width: 347,
-    height: 40,
+    height: 50,  // Increased height for picker
     backgroundColor: "#FFFFFF",
-    borderRadius: 10, 
-    overflow: "hidden", // Important pour appliquer le borderRadius
+    borderRadius: 10,
+    overflow: "hidden",
     borderWidth: 1,
     borderColor: "#ccc",
-    color: "#999999",
+    marginTop: 14,
   },
   size: {
-    fontSize: 15,
-    color: "#999999",
+    fontSize: 16, // Increased font size for easier readability
+    color: "#B0B0B0",  // Darker color for better contrast
   },
   iconContainer: {
-    marginTop: 10
-  }
+    marginTop: 15,
+  },
 });

@@ -27,14 +27,19 @@ const getDayOfWeek = (dateString) => {
 const serveurIP = process.env.EXPO_PUBLIC_SERVEUR_IP;
 
 const FilterScreen = ({ navigation, background = require('../assets/background.png') }) => {
-  const userId = useSelector(state => state.user.id); // Accéder à l'ID de l'utilisateur connecté
+  const userId = useSelector(state => state.user.value._id);
+  const userType = useSelector(state => state.user.value.type);
+  console.log('Type de garde priorisé :', userType)
+
+  console.log("Valeur de userId dans le composant:", userId); // Ajoute ce log pour vérifier
+
   const dispatch = useDispatch();
 
   const [selectedMenu, setSelectedMenu] = useState('Ponctuelle');
   const [search, setSearch] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [modalChildrenVisible, setModalChildrenVisible] = useState(false);
-  const [selectedTypes, setSelectedTypes] = useState([]);
+  const [selectedTypes, setSelectedTypes] = useState([userType]);
   const [typesOfCare, setTypesOfCare] = useState([]); // Liste des types de garde
   const [selectedStartDate, setSelectedStartDate] = useState('');
   const [selectedEndDate, setSelectedEndDate] = useState('');
@@ -45,18 +50,22 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
   const [children, setChildren] = useState([]); // Liste des enfants
   const [selectedChildren, setSelectedChildren] = useState([]); // Enfants sélectionnés
 
-  // Récupération des villes
+  // Récupération des villes avec filtre dynamique
   useEffect(() => {
-    if (!selectedCity) {
-      fetch(`http://${serveurIP}:3000/establishments/city`)
+    const fetchCities = () => {
+      const searchQuery = selectedCity || ''; // Si l'utilisateur a saisi une ville
+      fetch(`http://${serveurIP}:3000/establishments/city?q=${encodeURIComponent(searchQuery)}`)
         .then(response => response.json())
         .then(data => setCities(data))
         .catch(error => {
           console.error('Erreur lors de la récupération des villes:', error);
           Alert.alert("Erreur", "Impossible de récupérer les villes.");
         });
-    }
+    };
+
+    fetchCities();
   }, [selectedCity]);
+
 
   // Récupération des types de garde au clic sur l'icône de filtre
   const handleSliderClick = () => {
@@ -100,10 +109,12 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
       city: selectedCity,
       days: daysOfWeek.join(', '),
       type: selectedTypes.join(', '),
-      children: selectedChildren.join(', '),
+      children: selectedChildren,
       startDate: selectedStartDate,
       endDate: selectedEndDate,
     };
+    console.log('Enfants envoyé dans reducer:', criteria.children)
+    console.log('Date séléctionnées', criteria.startDate + criteria.endDate)
 
     dispatch(setSearchCriteria(criteria));
     setModalVisible(false); // Fermer la modale après l'enregistrement
@@ -138,8 +149,10 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
       .then(data => {
         console.log('Données reçues du backend:', data);
 
+        // Vérification si le tableau des établissements est vide
         if (data && data.establishments && Array.isArray(data.establishments)) {
           if (data.establishments.length === 0) {
+            // Afficher un message d'erreur si le tableau est vide
             Alert.alert("Aucun établissement", "Aucun établissement n'est ouvert aux dates sélectionnées.");
           } else {
             console.log('Établissements disponibles:', data.establishments);
@@ -159,49 +172,90 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
     dispatch(setSearchCriteria(criteria));
   };
 
+
   // Gestion de la sélection des dates
   const handleDateChange = (day) => {
     const dayString = day.dateString;
-    setSelectedDays(prevSelectedDays => {
-      if (prevSelectedDays.includes(dayString)) {
-        return prevSelectedDays.filter(d => d !== dayString);
-      } else {
-        return [...prevSelectedDays, dayString];
-      }
-    });
+
+    // Si la date de début n'est pas encore sélectionnée, elle devient la date de début
+    if (!selectedStartDate || (selectedEndDate && !selectedStartDate)) {
+      setSelectedStartDate(dayString);
+      setSelectedEndDate(''); // Réinitialiser la date de fin lorsque la date de début est modifiée
+    } else if (!selectedEndDate && dayString > selectedStartDate) {
+      // Si une date de début est sélectionnée, la date de fin peut être choisie si elle est après la date de début
+      setSelectedEndDate(dayString);
+    } else {
+      // Si une date de fin est sélectionnée, la réinitialiser et repartir sur la sélection de la date de début
+      setSelectedStartDate(dayString);
+      setSelectedEndDate('');
+    }
+
+    // Ajouter une vérification de date de fin avant date de début
+    if (selectedEndDate && selectedStartDate && selectedEndDate < selectedStartDate) {
+      Alert.alert("Erreur", "La date de fin ne peut pas être avant la date de début.");
+      setSelectedEndDate(''); // Réinitialiser la date de fin si elle est invalide
+    }
   };
 
   const getMarkedDates = () => {
     const markedDates = {};
-    selectedDays.forEach(day => {
-      markedDates[day] = { selected: true, marked: true, customStyles: { container: { backgroundColor: '#EABBFF' }, text: { color: 'white' } } };
-    });
+
+    // Vérification de la validité des dates
+    if (!selectedStartDate || !selectedEndDate) return markedDates;
+
+    const startDate = new Date(selectedStartDate);
+    const endDate = new Date(selectedEndDate);
+
+    if (startDate > endDate) {
+      Alert.alert("Erreur", "La date de fin ne peut pas être avant la date de début.");
+      return markedDates; // Retourner un objet vide si la date de fin est invalide
+    }
+
+    let currentDate = startDate;
+
+    while (currentDate <= endDate) {
+      const dayString = currentDate.toISOString().split('T')[0]; // Formater la date en YYYY-MM-DD
+      markedDates[dayString] = {
+        selected: true,
+        marked: true,
+        customStyles: { container: { backgroundColor: '#EABBFF' }, text: { color: 'white' } },
+      };
+      currentDate.setDate(currentDate.getDate() + 1); // Avancer d'un jour
+    }
+
     return markedDates;
   };
 
+
   // Récupération des enfants
   const handleChildrenFetch = () => {
-    fetch(`http://${serveurIP}:3000/children?userId=${userId}`)
+    // Vérifiez la valeur de userId avant de faire la requête
+    console.log("Valeur de userId récupérée :", userId);
+
+    // Remplacez 'serveurIP' par l'IP directement pour tester
+    const url = `http://${serveurIP}:3000/users/children?userId=${userId}`;
+
+    fetch(url)
       .then(response => {
-        // Vérifiez le statut de la réponse
+        // Vérifiez la réponse HTTP
         if (!response.ok) {
-          return response.text().then(text => { throw new Error(text) });
+          return response.text().then(text => { throw new Error(text); });
         }
-        
+
         // Vérifiez le type de contenu de la réponse
         const contentType = response.headers.get("content-type");
-        if (contentType && contentType.indexOf("application/json") !== -1) {
+        if (contentType && contentType.includes("application/json")) {
           return response.json();
         } else {
           return response.text().then(text => { throw new Error(`Réponse non-JSON: ${text}`); });
         }
       })
       .then(data => {
-        console.log("Données complètes des enfants reçues:", data);
+        console.log("Données récupérées:", data); // Vérifie le contenu de la réponse ici
         if (Array.isArray(data)) {
           console.log('Données enfants au bon format:', data);
-          setChildren(data || []);
-          setModalChildrenVisible(true);
+          setChildren(data || []); // Met à jour les enfants dans l'état
+          setModalChildrenVisible(true); // Affiche le modal
         } else {
           console.error('Les données des enfants ne sont pas au bon format:', data);
           Alert.alert("Erreur", "Les données des enfants ne sont pas au bon format.");
@@ -212,7 +266,7 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
         Alert.alert("Erreur", `Impossible de récupérer les enfants: ${error.message}`);
       });
   };
-  
+
 
   // Sélection des enfants
   const handleChildrenCheckboxChange = (childId) => {
@@ -283,67 +337,67 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
 
         {/* Modale pour les types de garde */}
         <Modal
-  animationType="slide"
-  transparent={true}
-  visible={modalVisible}
-  onRequestClose={handleCloseModal}
->
-  <View style={{ 
-    flex: 1, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    backgroundColor: 'rgba(0,0,0,0.5)'
-  }}>
-    <View style={{ 
-      width: '80%', 
-      backgroundColor: 'white', 
-      borderRadius: 10, 
-      padding: 20, 
-      alignItems: 'center'
-    }}>
-      <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 20 }}>Sélectionner un type de garde</Text>
-      <ScrollView style={{ marginBottom: 20 }}>
-        {typesOfCare.map((type) => (
-          <CheckBox
-            key={type}
-            title={<Text>{type}</Text>}
-            checked={selectedTypes.includes(type)}
-            onPress={() => handleCheckboxChange(type)}
-            containerStyle={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }} // Style intégré
-          />
-        ))}
-      </ScrollView>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
-        <TouchableOpacity 
-          style={{ 
-            backgroundColor: '#98B9F2', 
-            padding: 10, 
-            borderRadius: 5, 
-            flex: 1, 
-            alignItems: 'center', 
-            marginRight: 5 
-          }} 
-          onPress={handleCloseModal}
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={handleCloseModal}
         >
-          <Text style={{ color: 'white', fontWeight: 'bold' }}>Fermer</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={{ 
-            backgroundColor: '#EABBFF', 
-            padding: 10, 
-            borderRadius: 5, 
-            flex: 1, 
-            alignItems: 'center', 
-            marginLeft: 5 
-          }} 
-          onPress={handleSave}
-        >
-          <Text style={{ color: 'white', fontWeight: 'bold' }}>Sauvegarder</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  </View>
-</Modal>
+          <View style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0,0,0,0.5)'
+          }}>
+            <View style={{
+              width: '80%',
+              backgroundColor: 'white',
+              borderRadius: 10,
+              padding: 20,
+              alignItems: 'center'
+            }}>
+              <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 20 }}>Sélectionner un type de garde</Text>
+              <ScrollView style={{ marginBottom: 20 }}>
+                {typesOfCare.map((type) => (
+                  <CheckBox
+                    key={type}
+                    title={<Text>{type}</Text>}
+                    checked={selectedTypes.includes(type)}
+                    onPress={() => handleCheckboxChange(type)}
+                    containerStyle={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }} // Style intégré
+                  />
+                ))}
+              </ScrollView>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: '#98B9F2',
+                    padding: 10,
+                    borderRadius: 5,
+                    flex: 1,
+                    alignItems: 'center',
+                    marginRight: 5
+                  }}
+                  onPress={handleCloseModal}
+                >
+                  <Text style={{ color: 'white', fontWeight: 'bold' }}>Fermer</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: '#EABBFF',
+                    padding: 10,
+                    borderRadius: 5,
+                    flex: 1,
+                    alignItems: 'center',
+                    marginLeft: 5
+                  }}
+                  onPress={handleSave}
+                >
+                  <Text style={{ color: 'white', fontWeight: 'bold' }}>Sauvegarder</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
 
 
 
@@ -351,75 +405,83 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
 
         {/* Modale pour les enfants */}
         <Modal
-  animationType="slide"
-  transparent={true}
-  visible={modalChildrenVisible}
-  onRequestClose={handleCloseChildrenModal}
->
-  <View style={{ 
-    flex: 1, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    backgroundColor: 'rgba(0,0,0,0.5)' 
-  }}>
-    <View style={{ 
-      width: '80%', 
-      backgroundColor: 'white', 
-      borderRadius: 10, 
-      padding: 20, 
-      alignItems: 'center'
-    }}>
-      <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 20 }}>Sélectionner un enfant</Text>
-      <ScrollView style={{ marginBottom: 20 }}>
-        {children.map((child) => (
-          <CheckBox
-            key={child._id}
-            title={<Text>{child.firstnamechild} {child.namechild}</Text>}
-            checked={selectedChildren.includes(child._id)}
-            onPress={() => handleChildrenCheckboxChange(child._id)}
-            containerStyle={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }} // Style intégré
-          />
-        ))}
-      </ScrollView>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
-        <TouchableOpacity 
-          style={{ 
-            backgroundColor: '#98B9F2', 
-            padding: 10, 
-            borderRadius: 5, 
-            flex: 1, 
-            alignItems: 'center', 
-            marginRight: 5 
-          }} 
-          onPress={handleCloseChildrenModal}
+          animationType="slide"
+          transparent={true}
+          visible={modalChildrenVisible}
+          onRequestClose={handleCloseChildrenModal}
         >
-          <Text style={{ color: 'white', fontWeight: 'bold' }}>Fermer</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={{ 
-            backgroundColor: '#EABBFF', 
-            padding: 10, 
-            borderRadius: 5, 
-            flex: 1, 
-            alignItems: 'center', 
-            marginLeft: 5 
-          }} 
-          onPress={handleSave}
-        >
-          <Text style={{ color: 'white', fontWeight: 'bold' }}>Sauvegarder</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  </View>
-</Modal>
+          <View style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0,0,0,0.5)'
+          }}>
+            <View style={{
+              width: '80%',
+              backgroundColor: 'white',
+              borderRadius: 10,
+              padding: 20,
+              alignItems: 'center'
+            }}>
+              <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 20 }}>Sélectionner un enfant</Text>
+              <ScrollView style={{ marginBottom: 20 }}>
+                {children.map((child) => (
+                  <CheckBox
+                    key={child._id}
+                    title={<Text>{child.firstnamechild} {child.namechild}</Text>}
+                    checked={selectedChildren.includes(child._id)}
+                    onPress={() => handleChildrenCheckboxChange(child._id)}
+                    containerStyle={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }} // Style intégré
+                  />
+                ))}
+              </ScrollView>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%' }}>
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: '#98B9F2',
+                    padding: 10,
+                    borderRadius: 5,
+                    flex: 1,
+                    alignItems: 'center',
+                    marginRight: 5
+                  }}
+                  onPress={handleCloseChildrenModal}
+                >
+                  <Text style={{ color: 'white', fontWeight: 'bold' }}>Fermer</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: '#EABBFF',
+                    padding: 10,
+                    borderRadius: 5,
+                    flex: 1,
+                    alignItems: 'center',
+                    marginLeft: 5
+                  }}
+                  onPress={handleSave}
+                >
+                  <Text style={{ color: 'white', fontWeight: 'bold' }}>Sauvegarder</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
 
 
 
 
 
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.submitButtonText}>Rechercher</Text>
-        </TouchableOpacity>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
+            <Text style={styles.resetButtonText}>Réinitialiser</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+            <Text style={styles.submitButtonText}>Rechercher</Text>
+          </TouchableOpacity>
+        </View>
+
+
+
       </View>
     </ImageBackground>
   );
@@ -541,24 +603,15 @@ const styles = StyleSheet.create({
     fontSize: 20, // Taille de police de 20
     color: '#ccc', // Couleur grise
   },
-  buttonContainer: {
-    flexDirection: 'row', // Aligner les éléments en ligne
-    justifyContent: 'space-between', // Espacement égal entre les éléments
-    width: '100%', // Largeur de 100%
-    marginTop: 20, // Marge en haut de 20
-  },
-  resetButton: {
-    width: '48%', // Largeur de 48%
-    height: 51, // Hauteur de 51
-    justifyContent: 'center', // Centrer verticalement
-    alignItems: 'center', // Centrer horizontalement
-    backgroundColor: 'transparent', // Couleur de fond transparente
-    borderRadius: 10, // Bordure arrondie de 10
-  },
   resetButtonText: {
     color: 'black', // Couleur noire
     fontSize: 18, // Taille de police de 18
     textDecorationLine: 'underline', // Texte souligné
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
   },
   submitButton: {
     width: '48%', // Largeur de 48%
@@ -570,10 +623,20 @@ const styles = StyleSheet.create({
     borderColor: 'white', // Couleur de la bordure blanche
     borderWidth: 1, // Largeur de la bordure de 1
   },
-  submitButtonText: {
-    color: '#fff', // Couleur blanche
-    fontSize: 18, // Taille de police de 18
+  resetButton: {
+    width: '48%', // Largeur de 48%
+    height: 51, // Hauteur de 51
+    justifyContent: 'center', // Centrer verticalement
+    alignItems: 'center', // Centrer horizontalement
+    backgroundColor: 'transparent', // Couleur de fond transparente
+    borderRadius: 10, // Bordure arrondie de 10
   },
+  submitButtonText: {
+    color: 'white', // Couleur du texte
+    fontWeight: 'bold', // Poids du texte en gras
+  },
+
+
   modalOverlay: {
     flex: 1, // Prend tout l'espace disponible
     backgroundColor: 'rgba(0, 0, 0, 0.5)', // Couleur de fond noire avec transparence

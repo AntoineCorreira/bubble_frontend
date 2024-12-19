@@ -8,17 +8,23 @@ const searchCriteriaSlice = createSlice({
     type: '',            // Type vide par défaut
     startDate: '',       // Date de début vide par défaut
     endDate: '',         // Date de fin vide par défaut
+    children: [],
     selectedEstablishment: null, // Établissement sélectionné
   },
   reducers: {
     setSearchCriteria: (state, action) => {
-      const { city, days, type, startDate, endDate } = action.payload;
+      const { city, days, type, startDate, endDate, children } = action.payload;
 
       state.city = city || '';                  // Mise à jour de la ville
       state.days = Array.isArray(days) ? days : [];  // Vérifie si 'days' est un tableau
       state.type = type || '';                  // Mise à jour du type
       state.startDate = startDate || '';        // Mise à jour de la date de début
       state.endDate = endDate || '';            // Mise à jour de la date de fin
+      // Ajouter les enfants tout en éliminant les doublons
+      const allChildren = [...state.children, ...children];
+      state.children = allChildren.filter((child, index, self) =>
+        index === self.findIndex((c) => c.id === child.id) // Assurez-vous d'avoir un identifiant unique pour chaque enfant
+      );
     },
     setSelectedEstablishment: (state, action) => {
       state.selectedEstablishment = action.payload; // Mettre à jour l'établissement sélectionné

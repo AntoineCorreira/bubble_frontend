@@ -22,7 +22,7 @@ export const establishmentSlice = createSlice({
   name: 'establishment',
   initialState,
   reducers: {
-    choosedEstablishment: (state, action) => {
+    addEstablishment: (state, action) => {
       state.value.name = action.payload.name;
       state.value.description = action.payload.description;
       state.value.type = action.payload.type;
@@ -40,5 +40,5 @@ export const establishmentSlice = createSlice({
   },
 });
 
-export const { choosedEstablishment } = establishmentSlice.actions;
+export const { addEstablishment } = establishmentSlice.actions;
 export default establishmentSlice.reducer;

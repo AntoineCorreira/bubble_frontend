@@ -1,16 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { choosedEstablishment } from '../reducers/establishment';
-import * as Font from 'expo-font';
+import { addEstablishment } from '../reducers/establishment';
 import { View, Text, StyleSheet, ImageBackground, TextInput, Image, ScrollView, TouchableOpacity, Dimensions, Alert } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 
 const serveurIP = process.env.EXPO_PUBLIC_SERVEUR_IP;
-
-
-
 
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371; // Rayon de la Terre en km
@@ -30,19 +26,11 @@ const LocationScreen = ({ navigation, route }) => {
     const user = useSelector((state) => state.user.value); // Type par défaut depuis user store
     const [viewMode, setViewMode] = useState('list');
     const [location, setLocation] = useState(null);
+    const [choosedEstablishment, setchoosedEstablishment] = useState(null);
     const [establishmentsData, setEstablishmentsData] = useState([]);
     const [locationPermission, setLocationPermission] = useState(false);
     const searchCriteria = useSelector(state => state.searchCriteria);
     const selectedEstablishment = useSelector(state => state.searchCriteria.selectedEstablishment); // Utilisation du state Redux pour l'établissement sélectionné
-
-    useEffect(() => {
-        const loadFonts = async () => {
-            await Font.loadAsync({
-                'Lily Script One': require('../assets/fonts/LilyScriptOne-Regular.ttf'),
-            });
-        };
-        loadFonts();
-    }, []);
 
     useEffect(() => {
         const requestLocationPermission = async () => {
@@ -97,7 +85,7 @@ const LocationScreen = ({ navigation, route }) => {
     }, [route.params?.searchCriteria, searchCriteria]);
 
     const addEstablishmentToStore = (newEstablishment) => {
-        dispatch(choosedEstablishment({
+        dispatch(addEstablishment({
             name: newEstablishment.name,
             description: newEstablishment.description,
             type: newEstablishment.type,
@@ -113,9 +101,6 @@ const LocationScreen = ({ navigation, route }) => {
         }));
         navigation.navigate('Establishment');
     };
-    
-    
-
 
     const isValidLocation = (latitude, longitude) => {
         return latitude && longitude && !isNaN(latitude) && !isNaN(longitude);
@@ -165,27 +150,27 @@ const LocationScreen = ({ navigation, route }) => {
             .sort((a, b) => a.distance - b.distance) // Trier par distance croissante
             .map((establishment, i) => {
                 return (
-                <TouchableOpacity key={i} style={styles.establishmentItem} onPress={() => { addEstablishmentToStore(establishment) }}>
-                    <Image source={images[randomNumber()]} style={styles.establishmentImage} />
-                    <View style={styles.description}>
-                        <View style={styles.nameAndDistance}>
-                            <Text style={styles.itemName}>
-                                {establishment.name.length > 50
-                                    ? establishment.name.slice(0, 50) + '...'
-                                    : establishment.name}
-                            </Text>
-                            <Text style={styles.distanceText}>
-                                {establishment.distance.toFixed(2)} km
+                    <TouchableOpacity key={i} style={styles.establishmentItem} onPress={() => { addEstablishmentToStore(establishment) }}>
+                        <Image source={images[randomNumber()]} style={styles.establishmentImage} />
+                        <View style={styles.description}>
+                            <View style={styles.nameAndDistance}>
+                                <Text style={styles.itemName}>
+                                    {establishment.name.length > 50
+                                        ? establishment.name.slice(0, 50) + '...'
+                                        : establishment.name}
+                                </Text>
+                                <Text style={styles.distanceText}>
+                                    {establishment.distance.toFixed(2)} km
+                                </Text>
+                            </View>
+                            <Text style={styles.itemDescription}>
+                                {establishment.description.length > 60
+                                    ? establishment.description.slice(0, 60) + '...'
+                                    : establishment.description}
                             </Text>
                         </View>
-                        <Text style={styles.itemDescription}>
-                            {establishment.description.length > 60
-                                ? establishment.description.slice(0, 60) + '...'
-                                : establishment.description}
-                        </Text>
-                    </View>
 
-                </TouchableOpacity>
+                    </TouchableOpacity>
                 )
             })
         : null; // Ne pas afficher la liste si location est null
@@ -201,6 +186,7 @@ const LocationScreen = ({ navigation, route }) => {
                 )
                 : 0;
 
+            // Créer une clé unique pour chaque marqueur
             const markerKey = establishment.id
                 ? establishment.id.toString()
                 : `marker-fallback-key-${index}`;
@@ -215,7 +201,7 @@ const LocationScreen = ({ navigation, route }) => {
                     title={establishment.name}
                     description={`Distance: ${distance.toFixed(2)} km`}
                     onPress={() => {
-                        addEstablishmentToStore(establishment);
+                        setchoosedEstablishment(establishment);
                     }}
                 />
             );
@@ -273,18 +259,18 @@ const LocationScreen = ({ navigation, route }) => {
                             {mapMarkers}
                         </MapView>
 
-                        {selectedEstablishment && (
-                            <TouchableOpacity style={styles.selectedEstablishment} onPress={() => { addEstablishmentToStore(selectedEstablishment) }}>
+                        {choosedEstablishment && (
+                            <TouchableOpacity style={styles.selectedEstablishment} onPress={() => { addEstablishmentToStore(choosedEstablishment) }}>
                                 <Image
                                     source={images[randomNumber()]}
                                     style={styles.establishmentImage}
                                 />
                                 <View style={styles.description}>
                                     <Text style={styles.itemName}>
-                                        {selectedEstablishment.name}
+                                        {choosedEstablishment.name}
                                     </Text>
                                     <Text style={styles.itemDescription}>
-                                        {selectedEstablishment.description}
+                                        {choosedEstablishment.description}
                                     </Text>
                                 </View>
                             </TouchableOpacity>
@@ -405,8 +391,8 @@ const styles = StyleSheet.create({
         height: 85,
     },
     establishmentImage: {
-        width: 50,
-        height: 50,
+        width: 60,
+        height: 60,
         borderRadius: 10,
         marginRight: 10,
     },

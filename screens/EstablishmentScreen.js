@@ -7,27 +7,23 @@ const serveurIP = process.env.EXPO_PUBLIC_SERVEUR_IP;
 export default function EstablishmentScreen({ navigation }) {
     const user = useSelector((state) => state.user.value)
     console.log('Reducer :', user);
-    // const criteria = useSelector((state) => state.searchCriteria.value)
+    const searchCriteria = useSelector((state) => state.searchCriteria)
+    console.log('Critères:', searchCriteria);
     const establishment = useSelector((state) => state.establishment.value)
 
-    const criteria = {
-        city: 'Paris',
-        startDate: '02/01/2025',
-        endDate: '03/01/2025',
-        childName: 'Alexandre'
-    }
-
-    // const user = {
-    //     firstname: 'Antoine',
-    //     name: 'Correira',
+    // const searchCriteria = {
+    //     city: 'Paris',
+    //     startDate: '02/01/2025',
+    //     endDate: '03/01/2025',
+    //     childName: 'Alexandre'
     // }
 
     const reservationData = {
-        startDate: criteria.startDate,
-        endDate: criteria.endDate,
+        startDate: searchCriteria.startDate,
+        endDate: searchCriteria.endDate,
         parentFirstname: user.firstname,
         parentName: user.name,
-        child: criteria.childName,
+        child: searchCriteria.children,
         establishmentName: establishment.name,
         establishmentZip: establishment.zip,
         status: 'pending',
