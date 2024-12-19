@@ -9,7 +9,7 @@ const ProfileScreen = () => {
   // Récupération de l'utilisateur à partir du store Redux
   const user = useSelector((state) => state.user.value);
   const dispatch = useDispatch();
-
+  const serveurIP = process.env.EXPO_PUBLIC_SERVEUR_IP;
   // États locaux pour gérer l'édition, l'entrée de texte et l'affichage des erreurs
   const [editingField, setEditingField] = useState(null); // Champ actuellement en édition
   const [inputValue, setInputValue] = useState(''); // Valeur du champ en cours d'édition
@@ -24,7 +24,7 @@ const ProfileScreen = () => {
   // Fonction pour récupérer les types de garde depuis l'API
   const fetchTypes = async () => {
     try {
-      const response = await fetch(`http://192.168.1.129:3000/establishments/type`);
+      const response = await fetch(`http://${serveurIP}:3000/establishments/type`);
       const data = await response.json();
       if (response.ok) {
         setTypesOfCare(data); // Stocker les types dans l'état

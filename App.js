@@ -22,6 +22,7 @@ import MessageScreen from './screens/MessageScreen';
 import ProfilScreen from './screens/ProfilScreen';
 import ReservationScreen from './screens/ReservationScreen';
 import ObligatoryFilterScreen from './screens/ObligatoryFilterScreen'; 
+import Reservation from 'react-native-calendars/src/agenda/reservation-list/reservation';
 
 const store = configureStore({
   reducer: { 

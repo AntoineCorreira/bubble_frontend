@@ -1,16 +1,17 @@
 import React from 'react';
-import { Image, View, Text, StyleSheet, ImageBackground, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity} from 'react-native';
+import { Image, View, Text, StyleSheet, ImageBackground, KeyboardAvoidingView, Platform, ScrollView} from 'react-native';
 import { useEffect, useState} from 'react';
 import { useSelector } from 'react-redux';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faHourglassStart, faThumbsUp, faThumbsDown } from '@fortawesome/free-solid-svg-icons'
+import { useIsFocused } from '@react-navigation/native'; // useIsFocused etat booleen utilisé pour raffraichir le screen a chaques fois qu on revient dessus.
 const ReservationScreen = () => {
-
+  const serveurIP = process.env.EXPO_PUBLIC_SERVEUR_IP;
   const [reservations,setReservation] = useState([])
-
-const User = useSelector((state)=>state.user.value)
+  const focused = useIsFocused()
+  const User = useSelector((state)=>state.user.value)
   useEffect(()=>{
-    fetch("http://192.168.1.53:3000/reservations/allReservations", {
+    fetch(`http://${serveurIP}:3000/reservations/allReservations`, {
       method: "POST",
       headers: { "Content-type": "application/json" },
       body: JSON.stringify({
@@ -21,7 +22,8 @@ const User = useSelector((state)=>state.user.value)
     .then(data=>{
       if(data.result){ setReservation(data.dataReservation)}
     })
-  },[])
+    //utilisation de la variable focused pour mettre a jour les demandes
+  },[focused])
 
   let reservationView = ''
   if(reservations.length){
@@ -106,7 +108,8 @@ title: {
     margin: 5,
   },
   titleCard: {
-    fontSize: 18,
+    justifyContent:'center',
+    fontSize: 15,
   },
   notReservation: {
     justifyContent: 'center',
@@ -116,6 +119,9 @@ title: {
     marginTop: '230',
     color:'white',
     fontSize: 15
+  },
+  infosContainer: {
+    justifyContent: 'center',
   }
 });
 

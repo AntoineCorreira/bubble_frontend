@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, TouchableOpacity, ImageBackground, TextInput, KeyboardAvoidingView, Platform } from 'react-native'
 // import { Navigation } from '@react-navigation/native';
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useDispatch} from 'react-redux';
 import { login } from '../reducers/user';
 // import pour la connection google
@@ -31,6 +31,7 @@ export default function LoginScreen({ navigation }) {
     const [emailError2, setEmailError2] = useState(false);
     //etat pour recup info user avec connection google
     const [user, setUser] = React.useState(null);
+    console.log(user)
     const dispatch = useDispatch();
      // fonction pour le signup
     const handleSubmit = () => {
@@ -96,29 +97,29 @@ export default function LoginScreen({ navigation }) {
  const [request, response, promptAsync] = useAuthRequest(
   {
     clientId: '',
-    redirectUri: 'https://auth.expo.dev/@username/your-app-slug',
-    scopes: ['openid','profile', 'email'],
+    redirectUri: 'https://auth.expo.dev/@your-username/my-app',
+    scopes: ['openid','profile'],
   },
   discovery
 );
 
   // Gestion de la réponse
-  React.useEffect(() => {
+     useEffect(() => {
     if (response?.type === 'success') {
       const { access_token } = response.params;
-
+   console.log( access_token)
       // Récupérer les informations utilisateur
-      fetch('https://www.googleapis.com/userinfo/v2/me', {
+      fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
         headers: { Authorization: `Bearer ${access_token}` },
       })
         .then(response => response.json())
         .then(data => {
           console.log(data)
-          setUser(data)
+          setUser(user)
         })
         .catch((error) => console.error('Erreur lors de la récupération des données utilisateur :', error));
     }
-  }, [response]);
+  }, []);
 
   return (
 
