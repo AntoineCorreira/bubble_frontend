@@ -1,6 +1,6 @@
 import React from 'react';
-import { Image, View, Text, StyleSheet, ImageBackground, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { useEffect, useState } from 'react';
+import { Image, View, Text, StyleSheet, ImageBackground, KeyboardAvoidingView, Platform, ScrollView} from 'react-native';
+import { useEffect, useState} from 'react';
 import { useSelector } from 'react-redux';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faHourglassStart, faThumbsUp, faThumbsDown } from '@fortawesome/free-solid-svg-icons'

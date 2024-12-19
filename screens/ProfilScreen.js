@@ -9,6 +9,7 @@ const ProfileScreen = () => {
   const user = useSelector((state) => state.user.value);
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const serveurIP = process.env.EXPO_PUBLIC_SERVEUR_IP;
 
   const [editingField, setEditingField] = useState(null);
   const [inputValue, setInputValue] = useState('');
@@ -20,13 +21,45 @@ const ProfileScreen = () => {
 
   const nonEditableFields = ['token', '_id', '_v'];
 
-  const handleScroll = (event) => {
-    const contentHeight = event.nativeEvent.contentSize.height;
-    const contentOffsetY = event.nativeEvent.contentOffset.y;
-    const isAtBottom = contentOffsetY >= contentHeight - event.nativeEvent.layoutMeasurement.height;
-    setShowLogoutButton(isAtBottom);
+  // Fonction pour récupérer les types de garde depuis l'API
+  const fetchTypes = async () => {
+    try {
+      const response = await fetch(`http://${serveurIP}:3000/establishments/type`);
+      const data = await response.json();
+      if (response.ok) {
+        setTypesOfCare(data); // Stocker les types dans l'état
+        setSelectedTypes(user.type ? [user.type] : []); // Mettre le type de garde par défaut si il existe
+      } else {
+        console.error('Error fetching types:', data);
+      }
+    } catch (error) {
+      console.error('Error fetching types:', error);
+    }
   };
 
+  // Ouvre la modal pour sélectionner un type de garde
+  const openModal = () => {
+    fetchTypes(); // Charger les types avant d'ouvrir la modal
+    setModalVisible(true); // Afficher la modal
+  };
+
+  // Ferme la modal
+  const closeModal = () => setModalVisible(false);
+
+  // Fonction pour sélectionner/désélectionner un type de garde
+  const handleCheckboxChange = (type) => {
+    setSelectedTypes([type]); // Sélectionne un seul type de garde
+  };
+
+  // Sauvegarder les types sélectionnés dans Redux
+  const handleSave = () => {
+    if (selectedTypes.length > 0) {
+      dispatch(updateUser({ type: selectedTypes[0] })); // Mettre à jour l'utilisateur dans Redux
+    }
+    closeModal(); // Fermer la modal après l'enregistrement
+  };
+
+  // Fonction pour démarrer l'édition d'un champ
   const startEditing = (field, value) => {
     setEditingField(field);
     setInputValue(value);

@@ -69,70 +69,69 @@ export default function LoginScreen({ navigation }) {
     }
   };
 
-  //fonction pour le signin
-  const handleLogin = () => {
-
-    fetch(`http://${serveurIP}:3000/users/signin`, {
-      method: 'POST',
-      headers: { 'Content-type': 'application/json' },
-      body: JSON.stringify({ email: emailSignin, password: passwordSignin })
-    })
-      .then(response => response.json())
-      .then(data => {
-        if (data.result) {
-          console.log('fetch sigin', data)
-          navigation.navigate('TabNavigator', { screen: 'Search' });
-          setEmailSignin(emailSignin === '');
-          setPasswordSignin(passwordSignin === '');
-          dispatch(
-            login({
-              token: data.token,
-              email: data.email,
-              name: data.name,
-              firstname: data.firstname,
-              civility: data.civility,
-              address: data.address,
-              city: data.city,
-              zip: data.zip,
-              phone: data.phone,
-              type: data.type,
-              children: data.children,
-              _id: data._id
-            })
-          );
-        } else {
-          setEmailError2(true)
-        }
-      })
-  };
-
-  // Configuration de la requête
-  const [request, response, promptAsync] = useAuthRequest(
-    {
-      clientId: '',
-      redirectUri: 'https://auth.expo.dev/@username/your-app-slug',
-      scopes: ['openid', 'profile', 'email'],
-    },
-    discovery
-  );
+    //fonction pour le signin
+    const handleLogin = () => {
+       
+            fetch(`http://${serveurIP}:3000/users/signin`, {
+                method: 'POST',
+                headers: {'Content-type' : 'application/json'},
+                body: JSON.stringify({ email: emailSignin, password : passwordSignin})
+              })
+                .then(response => response.json())
+                .then(data=>{
+                if(data.result){  console.log('fetch sigin' ,data)
+                navigation.navigate('TabNavigator', { screen: 'Search' });
+                setEmailSignin(emailSignin === '');
+                setPasswordSignin(passwordSignin === '');
+                dispatch(
+                            login({
+                              token: data.token,
+                              email: data.email,
+                              name: data.name,
+                              firstname: data.firstname,
+                              civility: data.civility,
+                              address: data.address,
+                              city: data.city,
+                              zip: data.zip,
+                              phone: data.phone,
+                              type: data.type,
+                              children: data.children,
+                              _id : data._id
+                            })
+                          );
+                }else{ 
+                    setEmailError2(true)
+                }
+                })
+            };
+    
+ // Configuration de la requête
+ const [request, response, promptAsync] = useAuthRequest(
+  {
+    clientId: '',
+    redirectUri: 'https://auth.expo.dev/@your-username/my-app',
+    scopes: ['openid','profile'],
+  },
+  discovery
+);
 
   // Gestion de la réponse
-  React.useEffect(() => {
+     useEffect(() => {
     if (response?.type === 'success') {
       const { access_token } = response.params;
-
+   console.log( access_token)
       // Récupérer les informations utilisateur
-      fetch('https://www.googleapis.com/userinfo/v2/me', {
+      fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
         headers: { Authorization: `Bearer ${access_token}` },
       })
         .then(response => response.json())
         .then(data => {
           console.log(data)
-          setUser(data)
+          setUser(user)
         })
         .catch((error) => console.error('Erreur lors de la récupération des données utilisateur :', error));
     }
-  }, [response]);
+  }, []);
 
   return (
 
