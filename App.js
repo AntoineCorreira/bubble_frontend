@@ -20,7 +20,6 @@ import ValidationScreen from './screens/ValidationScreen';
 import ProfilScreen from './screens/ProfilScreen';
 import ReservationScreen from './screens/ReservationScreen';
 import ObligatoryFilterScreen from './screens/ObligatoryFilterScreen'; 
-import Reservation from 'react-native-calendars/src/agenda/reservation-list/reservation';
 
 const store = configureStore({
   reducer: { 
@@ -98,6 +97,7 @@ export default function App() {
           <Stack.Screen name="Info" component={CoordonneeScreen} />
           <Stack.Screen name="Enfant" component={FamilyScreen} />
           <Stack.Screen name="Filter" component={FilterScreen} />
+          <Stack.Screen name="ObligatoryFilter" component={ObligatoryFilterScreen} />
           <Stack.Screen name="Establishment" component={EstablishmentScreen}/>
           <Stack.Screen name="Validation" component={ValidationScreen}/>
           <Stack.Screen name="Contact" component={ContactScreen}/>

@@ -9,7 +9,7 @@ const searchCriteriaSlice = createSlice({
     startDate: '',       // Date de début vide par défaut
     endDate: '',         // Date de fin vide par défaut
     children: [],
-    selectedEstablishment: null, // Établissement sélectionné
+    // selectedEstablishment: null, // Établissement sélectionné
   },
   reducers: {
     // Met à jour tous les critères de recherche
@@ -27,18 +27,26 @@ const searchCriteriaSlice = createSlice({
         index === self.findIndex((c) => c.id === child.id) // Assurez-vous d'avoir un identifiant unique pour chaque enfant
       );
     },
-    setSelectedEstablishment: (state, action) => {
-      state.selectedEstablishment = action.payload; 
-    },
+    resetSearchCriteria: (state, action) => {
+      state.city = '';                  // Mise à jour de la ville
+      state.days = [];  // Vérifie si 'days' est un tableau
+      state.type = '';                  // Mise à jour du type
+      state.startDate = '';        // Mise à jour de la date de début
+      state.endDate = '';
+      state.children = '';
+    }
+    // setSelectedEstablishment: (state, action) => {
+    //   state.selectedEstablishment = action.payload; 
+    // },
 
-    // Réinitialise l'établissement sélectionné
-    resetSelectedEstablishment: (state) => {
-      state.selectedEstablishment = null;
-    },
+    // // Réinitialise l'établissement sélectionné
+    // resetSelectedEstablishment: (state) => {
+    //   state.selectedEstablishment = null;
+    // },
   },
 });
 
 // Export des actions et du reducer
-export const { setSearchCriteria, setSelectedEstablishment, resetSelectedEstablishment } = searchCriteriaSlice.actions;
+export const { setSearchCriteria, setSelectedEstablishment, resetSelectedEstablishment, resetSearchCriteria } = searchCriteriaSlice.actions;
 export default searchCriteriaSlice.reducer;
 
