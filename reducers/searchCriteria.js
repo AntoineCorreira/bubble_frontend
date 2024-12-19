@@ -3,36 +3,40 @@ import { createSlice } from '@reduxjs/toolkit';
 const searchCriteriaSlice = createSlice({
   name: 'searchCriteria',
   initialState: {
-    city: '',            // Ville vide par défaut
-    days: [],            // Tableau vide pour les jours par défaut
-    type: '',            // Type vide par défaut
-    startDate: '',       // Date de début vide par défaut
-    endDate: '',         // Date de fin vide par défaut
-    selectedEstablishment: null, // Établissement sélectionné
+    city: '',            
+    days: [],            
+    type: '',            
+    startDate: '',       
+    endDate: '',         
+    selectedEstablishment: null, // L'établissement est initialisé à null
+    children: '',        // Ajout pour stocker les enfants sélectionnés (ID séparés par des virgules)
   },
   reducers: {
+    // Met à jour tous les critères de recherche
     setSearchCriteria: (state, action) => {
-      const { city, days, type, startDate, endDate } = action.payload;
+      const { city, days, type, startDate, endDate, children } = action.payload;
 
-      state.city = city || '';                  // Mise à jour de la ville
-      state.days = Array.isArray(days) ? days : [];  // Vérifie si 'days' est un tableau
-      state.type = type || '';                  // Mise à jour du type
-      state.startDate = startDate || '';        // Mise à jour de la date de début
-      state.endDate = endDate || '';            // Mise à jour de la date de fin
+      state.city = city || '';                  
+      state.days = Array.isArray(days) ? days : [];  
+      state.type = type || '';                  
+      state.startDate = startDate || '';        
+      state.endDate = endDate || '';            
+      state.children = children || ''; // Ajout pour gérer les enfants
     },
+
+    // Définit un établissement sélectionné
     setSelectedEstablishment: (state, action) => {
-      state.selectedEstablishment = action.payload; // Mettre à jour l'établissement sélectionné
+      state.selectedEstablishment = action.payload; 
     },
+
+    // Réinitialise l'établissement sélectionné
     resetSelectedEstablishment: (state) => {
-      state.selectedEstablishment = null; // Réinitialiser l'établissement sélectionné
+      state.selectedEstablishment = null;
     },
   },
 });
 
-export const { 
-  setSearchCriteria, 
-  setSelectedEstablishment, 
-  resetSelectedEstablishment 
-} = searchCriteriaSlice.actions;
-
+// Export des actions et du reducer
+export const { setSearchCriteria, setSelectedEstablishment, resetSelectedEstablishment } = searchCriteriaSlice.actions;
 export default searchCriteriaSlice.reducer;
+

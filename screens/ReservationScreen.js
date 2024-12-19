@@ -10,7 +10,7 @@ const ReservationScreen = () => {
 
 const User = useSelector((state)=>state.user.value)
   useEffect(()=>{
-    fetch("http://192.168.1.53:3000/reservations/allReservations", {
+    fetch("http://${serveurIP}:3000/reservations/allReservations", {
       method: "POST",
       headers: { "Content-type": "application/json" },
       body: JSON.stringify({

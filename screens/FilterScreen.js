@@ -27,7 +27,10 @@ const getDayOfWeek = (dateString) => {
 const serveurIP = process.env.EXPO_PUBLIC_SERVEUR_IP;
 
 const FilterScreen = ({ navigation, background = require('../assets/background.png') }) => {
-  const userId = useSelector(state => state.user.id); // Accéder à l'ID de l'utilisateur connecté
+  const userId = useSelector(state => state.user.value._id);
+
+console.log("Valeur de userId dans le composant:", userId); // Ajoute ce log pour vérifier
+
   const dispatch = useDispatch();
 
   const [selectedMenu, setSelectedMenu] = useState('Ponctuelle');
@@ -45,18 +48,22 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
   const [children, setChildren] = useState([]); // Liste des enfants
   const [selectedChildren, setSelectedChildren] = useState([]); // Enfants sélectionnés
 
-  // Récupération des villes
-  useEffect(() => {
-    if (!selectedCity) {
-      fetch(`http://${serveurIP}:3000/establishments/city`)
-        .then(response => response.json())
-        .then(data => setCities(data))
-        .catch(error => {
-          console.error('Erreur lors de la récupération des villes:', error);
-          Alert.alert("Erreur", "Impossible de récupérer les villes.");
-        });
-    }
-  }, [selectedCity]);
+// Récupération des villes avec filtre dynamique
+useEffect(() => {
+  const fetchCities = () => {
+    const searchQuery = selectedCity || ''; // Si l'utilisateur a saisi une ville
+    fetch(`http://${serveurIP}:3000/establishments/city?q=${encodeURIComponent(searchQuery)}`)
+      .then(response => response.json())
+      .then(data => setCities(data))
+      .catch(error => {
+        console.error('Erreur lors de la récupération des villes:', error);
+        Alert.alert("Erreur", "Impossible de récupérer les villes.");
+      });
+  };
+
+  fetchCities();
+}, [selectedCity]);
+
 
   // Récupération des types de garde au clic sur l'icône de filtre
   const handleSliderClick = () => {
@@ -114,19 +121,17 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
 
   // Soumission du formulaire avec recherche d'établissements
   const handleSubmit = () => {
-    // Convertir les dates sélectionnées en jours de la semaine
-    const daysOfWeek = selectedDays.map(date => getDayOfWeek(date));
     const criteria = {
       city: selectedCity,
-      days: daysOfWeek.join(', '),
+      days: selectedDays.map(date => getDayOfWeek(date)).join(', '),
       type: selectedTypes.join(', '),
       children: selectedChildren.join(', '),
       startDate: selectedStartDate,
       endDate: selectedEndDate,
     };
-
-    console.log('Critères envoyés:', criteria);
-
+  
+    console.log('Critères envoyés dans FilterScreen:', criteria);
+  
     fetch(`http://${serveurIP}:3000/establishments?city=${encodeURIComponent(criteria.city)}&days=${encodeURIComponent(criteria.days)}&type=${encodeURIComponent(criteria.type)}&children=${encodeURIComponent(criteria.children)}`)
       .then(response => {
         if (!response.ok) {
@@ -137,14 +142,14 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
       })
       .then(data => {
         console.log('Données reçues du backend:', data);
-
+  
         if (data && data.establishments && Array.isArray(data.establishments)) {
           if (data.establishments.length === 0) {
             Alert.alert("Aucun établissement", "Aucun établissement n'est ouvert aux dates sélectionnées.");
           } else {
             console.log('Établissements disponibles:', data.establishments);
             setEstablishmentsData(data.establishments);
-            navigation.navigate('Location'); // Naviguer vers LocationScreen
+            navigation.navigate('Location');
           }
         } else {
           console.error('Format de données inattendu ou établissements non définis:', data);
@@ -155,64 +160,107 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
         console.error('Erreur lors de la récupération des établissements:', error);
         Alert.alert("Erreur", "Impossible de récupérer les établissements.");
       });
-
-    dispatch(setSearchCriteria(criteria));
+  
+    dispatch(setSearchCriteria(criteria)); // Mettre à jour les critères de recherche dans Redux
   };
-
+  
+  
+  
+  
   // Gestion de la sélection des dates
   const handleDateChange = (day) => {
     const dayString = day.dateString;
-    setSelectedDays(prevSelectedDays => {
-      if (prevSelectedDays.includes(dayString)) {
-        return prevSelectedDays.filter(d => d !== dayString);
-      } else {
-        return [...prevSelectedDays, dayString];
-      }
-    });
-  };
-
-  const getMarkedDates = () => {
-    const markedDates = {};
-    selectedDays.forEach(day => {
-      markedDates[day] = { selected: true, marked: true, customStyles: { container: { backgroundColor: '#EABBFF' }, text: { color: 'white' } } };
-    });
-    return markedDates;
-  };
-
-  // Récupération des enfants
-  const handleChildrenFetch = () => {
-    fetch(`http://${serveurIP}:3000/children?userId=${userId}`)
-      .then(response => {
-        // Vérifiez le statut de la réponse
-        if (!response.ok) {
-          return response.text().then(text => { throw new Error(text) });
-        }
-        
-        // Vérifiez le type de contenu de la réponse
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.indexOf("application/json") !== -1) {
-          return response.json();
-        } else {
-          return response.text().then(text => { throw new Error(`Réponse non-JSON: ${text}`); });
-        }
-      })
-      .then(data => {
-        console.log("Données complètes des enfants reçues:", data);
-        if (Array.isArray(data)) {
-          console.log('Données enfants au bon format:', data);
-          setChildren(data || []);
-          setModalChildrenVisible(true);
-        } else {
-          console.error('Les données des enfants ne sont pas au bon format:', data);
-          Alert.alert("Erreur", "Les données des enfants ne sont pas au bon format.");
-        }
-      })
-      .catch(error => {
-        console.error('Erreur lors de la récupération des enfants:', error);
-        Alert.alert("Erreur", `Impossible de récupérer les enfants: ${error.message}`);
-      });
+  
+    // Si la date de début n'est pas encore sélectionnée, elle devient la date de début
+    if (!selectedStartDate || (selectedEndDate && !selectedStartDate)) {
+      setSelectedStartDate(dayString);
+      setSelectedEndDate(''); // Réinitialiser la date de fin lorsque la date de début est modifiée
+    } else if (!selectedEndDate && dayString > selectedStartDate) {
+      // Si une date de début est sélectionnée, la date de fin peut être choisie si elle est après la date de début
+      setSelectedEndDate(dayString);
+    } else {
+      // Si une date de fin est sélectionnée, la réinitialiser et repartir sur la sélection de la date de début
+      setSelectedStartDate(dayString);
+      setSelectedEndDate('');
+    }
+  
+    // Ajouter une vérification de date de fin avant date de début
+    if (selectedEndDate && selectedStartDate && selectedEndDate < selectedStartDate) {
+      Alert.alert("Erreur", "La date de fin ne peut pas être avant la date de début.");
+      setSelectedEndDate(''); // Réinitialiser la date de fin si elle est invalide
+    }
   };
   
+  const getMarkedDates = () => {
+    const markedDates = {};
+  
+    // Vérification de la validité des dates
+    if (!selectedStartDate || !selectedEndDate) return markedDates;
+  
+    const startDate = new Date(selectedStartDate);
+    const endDate = new Date(selectedEndDate);
+  
+    if (startDate > endDate) {
+      Alert.alert("Erreur", "La date de fin ne peut pas être avant la date de début.");
+      return markedDates; // Retourner un objet vide si la date de fin est invalide
+    }
+  
+    let currentDate = startDate;
+  
+    while (currentDate <= endDate) {
+      const dayString = currentDate.toISOString().split('T')[0]; // Formater la date en YYYY-MM-DD
+      markedDates[dayString] = {
+        selected: true,
+        marked: true,
+        customStyles: { container: { backgroundColor: '#EABBFF' }, text: { color: 'white' } },
+      };
+      currentDate.setDate(currentDate.getDate() + 1); // Avancer d'un jour
+    }
+  
+    return markedDates;
+  };
+  
+
+// Récupération des enfants
+const handleChildrenFetch = () => {
+  // Vérifiez la valeur de userId avant de faire la requête
+  console.log("Valeur de userId récupérée :", userId);
+  
+  // Remplacez 'serveurIP' par l'IP directement pour tester
+  const url = `http://192.168.1.129:3000/users/children?userId=${userId}`;
+
+  fetch(url)
+    .then(response => {
+      // Vérifiez la réponse HTTP
+      if (!response.ok) {
+        return response.text().then(text => { throw new Error(text); });
+      }
+      
+      // Vérifiez le type de contenu de la réponse
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        return response.json();
+      } else {
+        return response.text().then(text => { throw new Error(`Réponse non-JSON: ${text}`); });
+      }
+    })
+    .then(data => {
+      console.log("Données récupérées:", data); // Vérifie le contenu de la réponse ici
+      if (Array.isArray(data)) {
+        console.log('Données enfants au bon format:', data);
+        setChildren(data || []); // Met à jour les enfants dans l'état
+        setModalChildrenVisible(true); // Affiche le modal
+      } else {
+        console.error('Les données des enfants ne sont pas au bon format:', data);
+        Alert.alert("Erreur", "Les données des enfants ne sont pas au bon format.");
+      }
+    })
+    .catch(error => {
+      console.error('Erreur lors de la récupération des enfants:', error);
+      Alert.alert("Erreur", `Impossible de récupérer les enfants: ${error.message}`);
+    });
+};
+
 
   // Sélection des enfants
   const handleChildrenCheckboxChange = (childId) => {
@@ -417,9 +465,17 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
 
 
 
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.submitButtonText}>Rechercher</Text>
-        </TouchableOpacity>
+<View style={styles.buttonContainer}>
+  <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
+    <Text style={styles.resetButtonText}>Réinitialiser</Text>
+  </TouchableOpacity>
+  <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+    <Text style={styles.submitButtonText}>Rechercher</Text>
+  </TouchableOpacity>
+</View>
+
+
+        
       </View>
     </ImageBackground>
   );
@@ -541,24 +597,15 @@ const styles = StyleSheet.create({
     fontSize: 20, // Taille de police de 20
     color: '#ccc', // Couleur grise
   },
-  buttonContainer: {
-    flexDirection: 'row', // Aligner les éléments en ligne
-    justifyContent: 'space-between', // Espacement égal entre les éléments
-    width: '100%', // Largeur de 100%
-    marginTop: 20, // Marge en haut de 20
-  },
-  resetButton: {
-    width: '48%', // Largeur de 48%
-    height: 51, // Hauteur de 51
-    justifyContent: 'center', // Centrer verticalement
-    alignItems: 'center', // Centrer horizontalement
-    backgroundColor: 'transparent', // Couleur de fond transparente
-    borderRadius: 10, // Bordure arrondie de 10
-  },
   resetButtonText: {
     color: 'black', // Couleur noire
     fontSize: 18, // Taille de police de 18
     textDecorationLine: 'underline', // Texte souligné
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
   },
   submitButton: {
     width: '48%', // Largeur de 48%
@@ -570,10 +617,20 @@ const styles = StyleSheet.create({
     borderColor: 'white', // Couleur de la bordure blanche
     borderWidth: 1, // Largeur de la bordure de 1
   },
-  submitButtonText: {
-    color: '#fff', // Couleur blanche
-    fontSize: 18, // Taille de police de 18
+  resetButton: {
+    width: '48%', // Largeur de 48%
+    height: 51, // Hauteur de 51
+    justifyContent: 'center', // Centrer verticalement
+    alignItems: 'center', // Centrer horizontalement
+    backgroundColor: 'transparent', // Couleur de fond transparente
+    borderRadius: 10, // Bordure arrondie de 10
   },
+  submitButtonText: {
+    color: 'white', // Couleur du texte
+    fontWeight: 'bold', // Poids du texte en gras
+  },
+
+
   modalOverlay: {
     flex: 1, // Prend tout l'espace disponible
     backgroundColor: 'rgba(0, 0, 0, 0.5)', // Couleur de fond noire avec transparence

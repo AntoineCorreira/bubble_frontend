@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { choosedEstablishment } from '../reducers/establishment';
+import { setSearchCriteria, setSelectedEstablishment, resetSelectedEstablishment } from '../reducers/searchCriteria';
 import * as Font from 'expo-font';
 import { View, Text, StyleSheet, ImageBackground, TextInput, Image, ScrollView, TouchableOpacity, Dimensions, Alert } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -33,7 +34,15 @@ const LocationScreen = ({ navigation, route }) => {
     const [establishmentsData, setEstablishmentsData] = useState([]);
     const [locationPermission, setLocationPermission] = useState(false);
     const searchCriteria = useSelector(state => state.searchCriteria);
-    const selectedEstablishment = useSelector(state => state.searchCriteria.selectedEstablishment); // Utilisation du state Redux pour l'établissement sélectionné
+   
+    
+
+
+    useEffect(() => {
+        console.log("Selected Establishment in LocationScreen: ", selectedEstablishment);
+    }, [selectedEstablishment]);
+    
+ // Utilisation du state Redux pour l'établissement sélectionné
 
     useEffect(() => {
         const loadFonts = async () => {
@@ -97,6 +106,9 @@ const LocationScreen = ({ navigation, route }) => {
     }, [route.params?.searchCriteria, searchCriteria]);
 
     const addEstablishmentToStore = (newEstablishment) => {
+        console.log("Establishment to add:", newEstablishment);
+    
+        // Dispatch de l'action choosedEstablishment
         dispatch(choosedEstablishment({
             name: newEstablishment.name,
             description: newEstablishment.description,
@@ -111,8 +123,38 @@ const LocationScreen = ({ navigation, route }) => {
             schedules: newEstablishment.schedules,
             capacity: newEstablishment.capacity,
         }));
+    
+        // Mise à jour de selectedEstablishment dans Redux (ajout de l'établissement sélectionné)
+        dispatch(setSelectedEstablishment(newEstablishment));  // Mise à jour de l'établissement sélectionné
+    };
+    
+    const { selectedEstablishment, startDate, endDate } = useSelector(state => state.searchCriteria);
+    
+    const handlePress = () => {
+        const isValidDate = (date) => date && !isNaN(Date.parse(date));
+    
+        console.log("Start Date from searchCriteria:", startDate);
+        console.log("End Date from searchCriteria:", endDate);
+    
+        // Vérification de la validité des dates
+        if (!isValidDate(startDate) || !isValidDate(endDate)) {
+            console.log("Les dates sont invalides.");
+            navigation.navigate('ObligatoryFilter'); // Redirige vers la page de filtrage si les dates ne sont pas valides
+            return;
+        }
+    
+        // Vérification que l'établissement sélectionné existe avant de naviguer
+        if (!selectedEstablishment) {
+            console.log("Aucun établissement sélectionné.");
+            Alert.alert("Sélectionnez un établissement", "Veuillez sélectionner un établissement avant de continuer.");
+            return;
+        }
+    
+        // Si les dates sont valides et un établissement est sélectionné, naviguez vers l'écran 'Establishment'
+        console.log("Naviguer vers Establishment avec les dates valides et établissement sélectionné");
         navigation.navigate('Establishment');
     };
+    
     
     
 
@@ -274,21 +316,26 @@ const LocationScreen = ({ navigation, route }) => {
                         </MapView>
 
                         {selectedEstablishment && (
-                            <TouchableOpacity style={styles.selectedEstablishment} onPress={() => { addEstablishmentToStore(selectedEstablishment) }}>
-                                <Image
-                                    source={images[randomNumber()]}
-                                    style={styles.establishmentImage}
-                                />
-                                <View style={styles.description}>
-                                    <Text style={styles.itemName}>
-                                        {selectedEstablishment.name}
-                                    </Text>
-                                    <Text style={styles.itemDescription}>
-                                        {selectedEstablishment.description}
-                                    </Text>
-                                </View>
-                            </TouchableOpacity>
-                        )}
+    <TouchableOpacity
+        style={styles.selectedEstablishment}
+        onPress={handlePress} // Appel à la fonction handlePress
+    >
+        <Image
+            source={images[randomNumber()]}
+            style={styles.establishmentImage}
+        />
+        <View style={styles.description}>
+            <Text style={styles.itemName}>
+                {selectedEstablishment.name}
+            </Text>
+            <Text style={styles.itemDescription}>
+                {selectedEstablishment.description}
+            </Text>
+        </View>
+    </TouchableOpacity>
+)}
+
+                        
                     </View>
                 )}
             </View>
