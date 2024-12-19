@@ -5,7 +5,7 @@ import { useDispatch } from 'react-redux';
 import { login } from '../reducers/user';
 import * as Font from 'expo-font';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons'
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
 // import pour la connection google
 import { useAuthRequest } from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
@@ -35,7 +35,7 @@ export default function LoginScreen({ navigation }) {
   //etat pour recup info user avec connection google
   const [user, setUser] = React.useState(null);
   const dispatch = useDispatch();
-  const [showPassword, setShowPassword] = useState(false); 
+  const [showPassword, setShowPassword] = useState(true);
   // importer la police du titre 
   useEffect(() => {
     const loadFonts = async () => {
@@ -71,54 +71,55 @@ export default function LoginScreen({ navigation }) {
     }
   };
 
-    //fonction pour le signin
-    const handleLogin = () => {
-       
-            fetch(`http://${serveurIP}:3000/users/signin`, {
-                method: 'POST',
-                headers: {'Content-type' : 'application/json'},
-                body: JSON.stringify({ email: emailSignin, password : passwordSignin})
-              })
-                .then(response => response.json())
-                .then(data=>{
-                if(data.result){  console.log('fetch sigin' ,data)
-                navigation.navigate('TabNavigator', { screen: 'Search' });
-                setEmailSignin(emailSignin === '');
-                setPasswordSignin(passwordSignin === '');
-                dispatch(
-                            login({
-                              token: data.token,
-                              email: data.email,
-                              name: data.name,
-                              firstname: data.firstname,
-                              civility: data.civility,
-                              address: data.address,
-                              city: data.city,
-                              zip: data.zip,
-                              phone: data.phone,
-                              type: data.type,
-                              children: data.children,
-                              _id : data._id
-                            })
-                          );
-                }else{ 
-                    setEmailError2(true)
-                }
-                })
-            };
-    
- // Configuration de la requête
- const [request, response, promptAsync] = useAuthRequest(
-  {
-    clientId: '',
-    redirectUri: 'https://auth.expo.dev/@your-username/my-app',
-    scopes: ['openid','profile'],
-  },
-  discovery
-);
+  //fonction pour le signin
+  const handleLogin = () => {
+
+    fetch(`http://${serveurIP}:3000/users/signin`, {
+      method: 'POST',
+      headers: { 'Content-type': 'application/json' },
+      body: JSON.stringify({ email: emailSignin, password: passwordSignin })
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.result) {
+          console.log('fetch sigin', data)
+          navigation.navigate('TabNavigator', { screen: 'Search' });
+          setEmailSignin(emailSignin === '');
+          setPasswordSignin(passwordSignin === '');
+          dispatch(
+            login({
+              token: data.token,
+              email: data.email,
+              name: data.name,
+              firstname: data.firstname,
+              civility: data.civility,
+              address: data.address,
+              city: data.city,
+              zip: data.zip,
+              phone: data.phone,
+              type: data.type,
+              children: data.children,
+              _id: data._id
+            })
+          );
+        } else {
+          setEmailError2(true)
+        }
+      })
+  };
+
+  // Configuration de la requête
+  const [request, response, promptAsync] = useAuthRequest(
+    {
+      clientId: '',
+      redirectUri: 'https://auth.expo.dev/@your-username/my-app',
+      scopes: ['openid', 'profile'],
+    },
+    discovery
+  );
 
   // Gestion de la réponse
-     useEffect(() => {
+  useEffect(() => {
     if (response?.type === 'success') {
       const { access_token } = response.params;
       // Récupérer les informations utilisateur
@@ -151,10 +152,10 @@ export default function LoginScreen({ navigation }) {
           {emailError && <Text style={styles.errorText}>Email pas valide</Text>}
           {emailError1 && <Text style={styles.errorText}>Email déja utilisée</Text>}
           <View style={styles.inputContainer}>
-          <TextInput style={styles.inputEyes} onChangeText={(value) => setPasswordSignup(value)} value={passwordSignup} placeholder='Mot de passe' placeholderTextColor='#999999' secureTextEntry={showPassword} />
-          <TouchableOpacity onPress={handlePasswordVisibility} >
-          <FontAwesomeIcon icon={showPassword ? faEye : faEyeSlash} style={styles.icon} size={25} color="black" />
-          </TouchableOpacity>
+            <TextInput style={styles.inputEyes} onChangeText={(value) => setPasswordSignup(value)} value={passwordSignup} placeholder='Mot de passe' placeholderTextColor='#999999' secureTextEntry={showPassword} />
+            <TouchableOpacity onPress={handlePasswordVisibility} >
+              <FontAwesomeIcon icon={showPassword ? faEye : faEyeSlash} style={styles.icon} size={25} color="black" />
+            </TouchableOpacity>
           </View>
           <View style={styles.buttonContainer}>
             <TouchableOpacity onPress={() => handleSubmit()} style={styles.button} activeOpacity={0.8}>
@@ -167,10 +168,10 @@ export default function LoginScreen({ navigation }) {
           <Text style={styles.text}>SE CONNECTER</Text>
           <TextInput style={styles.input} onChangeText={(value) => setEmailSignin(value)} value={emailSignin} placeholder='Email' placeholderTextColor='#999999' />
           <View style={styles.inputContainer}>
-          <TextInput style={styles.inputEyes} onChangeText={(value) => setPasswordSignin(value)} value={passwordSignin} placeholder='Mot de passe' placeholderTextColor='#999999' secureTextEntry={showPassword} />
-          <TouchableOpacity onPress={handlePasswordVisibility} >
-          <FontAwesomeIcon icon={showPassword ? faEye : faEyeSlash} style={styles.icon} size={25} color="black" />
-          </TouchableOpacity>
+            <TextInput style={styles.inputEyes} onChangeText={(value) => setPasswordSignin(value)} value={passwordSignin} placeholder='Mot de passe' placeholderTextColor='#999999' secureTextEntry={showPassword} />
+            <TouchableOpacity onPress={handlePasswordVisibility} >
+              <FontAwesomeIcon icon={showPassword ? faEye : faEyeSlash} style={styles.icon} size={25} color="black" />
+            </TouchableOpacity>
           </View>
           {emailError2 && <Text style={styles.errorText}>Email ou mot de passe non valide</Text>}
           <View style={styles.buttonContainer}>
