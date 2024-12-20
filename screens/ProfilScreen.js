@@ -176,6 +176,7 @@ const ProfileScreen = () => {
       if (result.result) {
         console.log('Enfant ajouté avec succès');
         dispatch(updateUser(result.updatedUser));  // Mettre à jour le store
+        setNewChild({  firstnamechild: '', namechild: '', birthdate: '' });
       } else {
         console.error('Erreur lors de l\'ajout de l\'enfant:', result.message);
       }
