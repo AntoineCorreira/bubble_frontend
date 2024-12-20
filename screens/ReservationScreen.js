@@ -1,6 +1,6 @@
 import React from 'react';
-import { Image, View, Text, StyleSheet, ImageBackground, KeyboardAvoidingView, Platform, ScrollView} from 'react-native';
-import { useEffect, useState} from 'react';
+import { Image, View, Text, StyleSheet, ImageBackground, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faHourglassStart, faThumbsUp, faThumbsDown } from '@fortawesome/free-solid-svg-icons'
@@ -9,6 +9,15 @@ import { useIsFocused } from '@react-navigation/native'; // useIsFocused etat bo
 const serveurIP = process.env.EXPO_PUBLIC_SERVEUR_IP;
 
 const ReservationScreen = () => {
+
+  const formatdate = (newDate) => {
+    if (!newDate) return ''; // Si la date est null ou undefined, retourner une chaîne vide
+    const date = new Date(newDate);
+    const day = String(date.getDate()).padStart(2, '0'); // Jour (19)
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Mois (12)
+    const year = date.getFullYear(); // Année (2024)
+    return `${day}/${month}/${year}`;
+  };
 
   const [reservations, setReservation] = useState([])
   const focused = useIsFocused()
@@ -69,7 +78,7 @@ const ReservationScreen = () => {
           <View style={styles.infosContainer}>
             <Text style={styles.titleCard}>{data.establishment.name}</Text>
             <Text style={styles.childNames}>{childrenNames}</Text>
-            <Text style={styles.reservationDates}>du {data.startDate} au {data.endDate}</Text>
+            <Text style={styles.reservationDates}>du {formatdate(data.startDate)} au {formatdate(data.endDate)}</Text>
           </View>
           <View style={styles.validation}>
             {data.status === 'accept' ? (

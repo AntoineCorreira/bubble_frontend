@@ -9,23 +9,46 @@ const serveurIP = process.env.EXPO_PUBLIC_SERVEUR_IP;
 export default function ContactScreen({ navigation }) {
     const [email, setEmail] = useState('');
     const [object, setObject] = useState('');
-    const [message, setMessage] = useState('');
     const establishment = useSelector((state) => state.establishment.value);
-    console.log('Establishment:', establishment);
     const user = useSelector((state) => state.user.value);
-    const searchCriteria = useSelector((state) => state.searchCriteria.value)
+    const searchCriteria = useSelector((state) => state.searchCriteria);
 
-    const defaultMessage = `Bonjour,
+    const formatdate = (newDate) => {
+        if (!newDate) return ''; // Si la date est null ou undefined, retourner une chaîne vide
+        const date = new Date(newDate);
+        const day = String(date.getDate()).padStart(2, '0'); // Jour (19)
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Mois (12)
+        const year = date.getFullYear(); // Année (2024)
+        return `${day}/${month}/${year}`;
+    };
 
-Je souhaite faire garder mon enfant sur la période du 18 au 24 avril dans votre crèche. 
+    const getDefaultMessage = () => {
+        if (searchCriteria.startDate && searchCriteria.endDate && user.firstname && user.name) {
+            return `Bonjour,
+
+Je souhaite faire garder mon enfant sur la période du ${formatdate(searchCriteria.startDate)} au ${formatdate(searchCriteria.endDate)} dans votre crèche. 
 
 Pouvez-vous me confirmer qu'il est possible pour vous
 d'accueillir mon enfant sur cette période ?
 
 Cordialement,
 ${user.firstname} ${user.name}`;
+        }
 
-    // Fonction pour ouvrir l'application mail
+        return `Bonjour,
+
+Je souhaite faire garder mon enfant sur la période du 01/01/2025 au 03/01/2025 dans votre crèche. 
+
+Pouvez-vous me confirmer qu'il est possible pour vous
+d'accueillir mon enfant sur cette période ?
+
+Cordialement,
+M. Dupont`;
+    };
+
+    const [message, setMessage] = useState(getDefaultMessage());
+
+    // Fonction pour envoyer un email
     const sendEmail = () => {
         fetch(`http://${serveurIP}:3000/mails/send`, {
             method: 'POST',
@@ -37,16 +60,16 @@ ${user.firstname} ${user.name}`;
                 text: message
             })
         })
-        .then(response => response.json())
-        .then(data => {
-            if(data) {
-                console.log(data)
-                navigation.navigate('Validation');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
+            .then((response) => response.json())
+            .then((data) => {
+                if (data) {
+                    console.log(data);
+                    navigation.navigate('Validation');
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
     };
 
     return (
@@ -81,7 +104,7 @@ ${user.firstname} ${user.name}`;
                     <View style={styles.messageBox}>
                         <TextInput
                             style={styles.mailUser}
-                            placeholder= {`Mail : ${user.email}`}
+                            placeholder={`Mail : ${user.email}`}
                             onChangeText={(value) => setEmail(value)}
                             value={email}
                         />
@@ -94,12 +117,12 @@ ${user.firstname} ${user.name}`;
                         <TextInput
                             style={styles.messageInput}
                             multiline={true}
-                            placeholder={defaultMessage}
+                            placeholder="Écrivez votre message ici"
                             onChangeText={(value) => setMessage(value)}
                             value={message}
                         />
                     </View>
-                    <TouchableOpacity style={styles.sendButton} onPress={() => sendEmail()}>
+                    <TouchableOpacity style={styles.sendButton} onPress={sendEmail}>
                         <Text style={styles.sendButtonText}>Envoyer</Text>
                     </TouchableOpacity>
                 </ScrollView>
