@@ -33,7 +33,7 @@ export default function FamilyScreen({ navigation }) {
   const dispatch = useDispatch();
   // creation de la fonction pour l ajout des données de l enfant grace a la route  POST/addChild
   const handleSubmit = (change) => {
-    fetch(`http://${serveurIP}:3000/users/addChild`, {
+    fetch(`https://bubble-backend-peach.vercel.app/users/addChild`, {
       method: "POST",
       headers: { "Content-type": "application/json" },
       body: JSON.stringify({

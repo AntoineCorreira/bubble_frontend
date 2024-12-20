@@ -69,7 +69,7 @@ const LocationScreen = ({ navigation, route }) => {
         }
         const query = queryParts.join('&');
 
-        fetch(`http://${serveurIP}:3000/establishments?${query}`)
+        fetch(`https://bubble-backend-peach.vercel.app/establishments?${query}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');

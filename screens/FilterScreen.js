@@ -54,7 +54,7 @@ const FilterScreen = ({ navigation, background = require('../assets/background.p
 useEffect(() => {
   const fetchCities = () => {
     const searchQuery = selectedCity || ''; // Si l'utilisateur a saisi une ville
-    fetch(`http://${serveurIP}:3000/establishments/city?q=${encodeURIComponent(searchQuery)}`)
+    fetch(`https://bubble-backend-peach.vercel.app/establishments/city?q=${encodeURIComponent(searchQuery)}`)
       .then(response => response.json())
       .then(data => setCities(data))
       .catch(error => {
@@ -68,7 +68,7 @@ useEffect(() => {
 
   // Récupération des types de garde au clic sur l'icône de filtre
   const handleSliderClick = () => {
-    fetch(`http://${serveurIP}:3000/establishments/type`)
+    fetch(`https://bubble-backend-peach.vercel.app/establishments/type`)
       .then(response => response.json())
       .then(data => {
         setTypesOfCare(data);
@@ -135,7 +135,7 @@ useEffect(() => {
 
     console.log('Critères envoyés dans FilterScreen:', criteria);
 
-    fetch(`http://${serveurIP}:3000/establishments?city=${encodeURIComponent(criteria.city)}&days=${encodeURIComponent(criteria.days)}&type=${encodeURIComponent(criteria.type)}&children=${encodeURIComponent(criteria.children)}`)
+    fetch(`https://bubble-backend-peach.vercel.app/establishments?city=${encodeURIComponent(criteria.city)}&days=${encodeURIComponent(criteria.days)}&type=${encodeURIComponent(criteria.type)}&children=${encodeURIComponent(criteria.children)}`)
       .then(response => {
         if (!response.ok) {
           console.error('Erreur dans la réponse:', response);
@@ -237,7 +237,7 @@ useEffect(() => {
     console.log("Valeur de userId récupérée :", userId);
 
     // Remplacez 'serveurIP' par l'IP directement pour tester
-    const url = `http://${serveurIP}:3000/users/children?userId=${userId}`;
+    const url = `https://bubble-backend-peach.vercel.app/users/children?userId=${userId}`;
 
     fetch(url)
       .then(response => {

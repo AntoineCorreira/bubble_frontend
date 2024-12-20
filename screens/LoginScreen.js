@@ -51,7 +51,7 @@ export default function LoginScreen({ navigation }) {
     // creation d un pattern pour avoir le bon format d email.
     const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
     if (pattern.test(emailSignup)) {
-      fetch(`http://${serveurIP}:3000/users/signup`, {
+      fetch(`https://bubble-backend-peach.vercel.app/users/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: emailSignup, password: passwordSignup })
@@ -74,7 +74,7 @@ export default function LoginScreen({ navigation }) {
   //fonction pour le signin
   const handleLogin = () => {
 
-    fetch(`http://${serveurIP}:3000/users/signin`, {
+    fetch(`https://bubble-backend-peach.vercel.app/users/signin`, {
       method: 'POST',
       headers: { 'Content-type': 'application/json' },
       body: JSON.stringify({ email: emailSignin, password: passwordSignin })

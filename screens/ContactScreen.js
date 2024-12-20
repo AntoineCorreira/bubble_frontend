@@ -50,7 +50,7 @@ M. Dupont`;
 
     // Fonction pour envoyer un email
     const sendEmail = () => {
-        fetch(`http://${serveurIP}:3000/mails/send`, {
+        fetch(`https://bubble-backend-peach.vercel.app/mails/send`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

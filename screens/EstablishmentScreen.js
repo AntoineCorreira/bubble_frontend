@@ -38,7 +38,7 @@ export default function EstablishmentScreen({ navigation }) {
     
         try {
             // Enregsitrement de la réservation en base
-            const response = await fetch(`http://${serveurIP}:3000/reservations`, {
+            const response = await fetch(`https://bubble-backend-peach.vercel.app/reservations`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(reservationData),

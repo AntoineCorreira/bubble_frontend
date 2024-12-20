@@ -33,7 +33,7 @@ const ProfileScreen = () => {
   // Récupérer les enfants depuis l'API
   const fetchChildren = async () => {
     try {
-      const response = await fetch(`http://${serveurIP}:3000/users/children?userId=${user._id}`);
+      const response = await fetch(`https://bubble-backend-peach.vercel.app/users/children?userId=${user._id}`);
       const childrenData = await response.json();
       if (response.ok) {
         dispatch(setSearchCriteria({ children: childrenData }));
@@ -50,7 +50,7 @@ const ProfileScreen = () => {
   // Fonction pour récupérer les types de garde depuis l'API
   const fetchTypes = async () => {
     try {
-      const response = await fetch(`http://${serveurIP}:3000/establishments/type`);
+      const response = await fetch(`https://bubble-backend-peach.vercel.app/establishments/type`);
       const data = await response.json();
       if (response.ok) {
         setTypesOfCare(data); // Stocker les types dans l'état
@@ -113,7 +113,7 @@ const ProfileScreen = () => {
       }
   
       try {
-        const response = await fetch(`http://${serveurIP}:3000/users/updateProfile/${userId}`, {
+        const response = await fetch(`https://bubble-backend-peach.vercel.app/users/updateProfile/${userId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -144,7 +144,7 @@ const ProfileScreen = () => {
     const userId = user._id;
   
     try {
-      const response = await fetch(`http://${serveurIP}:3000/users/removeChild/${userId}`, {
+      const response = await fetch(`https://bubble-backend-peach.vercel.app/users/removeChild/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -168,7 +168,7 @@ const ProfileScreen = () => {
     const userId = user._id;
   
     try {
-      const response = await fetch(`http://${serveurIP}:3000/users/addChild/${userId}`, {
+      const response = await fetch(`https://bubble-backend-peach.vercel.app/users/addChild/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

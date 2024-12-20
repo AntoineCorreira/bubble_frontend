@@ -95,7 +95,7 @@ const ObligatoryFilterScreen = ({ navigation, background = require('../assets/ba
   
     try {
       // Enregistrement de la réservation en base
-      const response = await fetch(`http://${serveurIP}:3000/reservations`, {
+      const response = await fetch(`https://bubble-backend-peach.vercel.app/reservations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(reservationData),
@@ -162,7 +162,7 @@ const ObligatoryFilterScreen = ({ navigation, background = require('../assets/ba
   };
 
   const handleChildrenFetch = () => {
-    fetch(`http://${serveurIP}:3000/users/children?userId=${user._id}`)
+    fetch(`https://bubble-backend-peach.vercel.app/users/children?userId=${user._id}`)
       .then(response => {
         if (!response.ok) {
           return response.text().then(text => { throw new Error(text) });

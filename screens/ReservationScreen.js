@@ -24,7 +24,7 @@ const ReservationScreen = () => {
   const User = useSelector((state) => state.user.value)
   console.log(User)
   useEffect(() => {
-    fetch(`http://${serveurIP}:3000/reservations/allReservations`, {
+    fetch(`https://bubble-backend-peach.vercel.app/reservations/allReservations`, {
       method: "POST",
       headers: { "Content-type": "application/json" },
       body: JSON.stringify({

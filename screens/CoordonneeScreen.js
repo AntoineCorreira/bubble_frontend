@@ -26,7 +26,7 @@ export default function CoordonneeScreen({ navigation }) {
   // Fonction pour soumettre les données de l'utilisateur au serveur
   const handleSubmit = () => {
     // Faire une requête POST pour envoyer les données utilisateur au serveur
-    fetch(`http://${serveurIP}:3000/users/addData`, {
+    fetch(`https://bubble-backend-peach.vercel.app/users/addData`, {
       method: 'POST',
       headers: { 'Content-type': 'application/json' },
       body: JSON.stringify({
