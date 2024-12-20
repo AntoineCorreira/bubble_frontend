@@ -91,7 +91,7 @@ export default function FamilyScreen({ navigation }) {
               ? "Ajouter un enfant"
               : user.children.length === 1
                 ? "Vous avez ajouté un enfant"
-                : `Vous avez ajouté ${user.children.length} enfants ajoutés`}
+                : `Vous avez ajouté ${user.children.length} enfants`}
           </Text>
         </View>
         <View>
@@ -117,13 +117,13 @@ export default function FamilyScreen({ navigation }) {
             placeholderTextColor="#999999"
           />
         </View>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           onPress={() => handleDocument()}
           style={styles.joinDocBtn}
           activeOpacity={0.8}
         >
           <Text style={styles.textButton}>Joindre des documents</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         <TouchableOpacity style={styles.iconContainer} onPress={() => handleSubmit(true)} >
           <FontAwesomeIcon icon={faUserPlus} style={styles.icon} size={50} color="#FFFFFF" />

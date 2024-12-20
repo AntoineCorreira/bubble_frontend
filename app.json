@@ -13,21 +13,30 @@
       "backgroundColor": "#ffffff"
     },
     "extra": {
-      "serveur_IP": "process.env.EXPO_PUBLIC_SERVEUR_IP"
+      "serveur_IP": "process.env.EXPO_PUBLIC_SERVEUR_IP",
+      "eas": {
+        "projectId": "210f30e1-0974-4b57-ba35-6ada0cb70104"
+      }
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.myapp"
+      "package": "com.anonymous.myapp",
+      "runtimeVersion": "1.0.0"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/210f30e1-0974-4b57-ba35-6ada0cb70104"
     }
-    
   }
 }
