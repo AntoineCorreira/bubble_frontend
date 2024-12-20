@@ -23,12 +23,8 @@ const ProfileScreen = () => {
   const [selectedChildren, setSelectedChildren] = useState([]);
   const [newChild, setNewChild] = useState({ firstname: '', namechild: '', birthdate: '' });
   const [childrenList, setChildrenList] = useState(user.children || []);
-  const [isPasswordEditing, setIsPasswordEditing] = useState(false); // Gérer si l'utilisateur modifie le mot de passe
-  const [password, setPassword] = useState("");  // Mot de passe actuel
-  const [newPassword, setNewPassword] = useState("");  // Nouveau mot de passe
 
-
-  const nonEditableFields = ['token', '_id', '_v', 'email'];
+  const nonEditableFields = ['token', '_id', '_v', 'email', '__v', '_ _v', 'password'];
 
   // Récupérer les enfants depuis l'API
   const fetchChildren = async () => {
@@ -64,21 +60,21 @@ const ProfileScreen = () => {
       setErrorMessage('Impossible de récupérer les types. Veuillez réessayer plus tard.');
     }
   };
-  
+
   useEffect(() => {
     fetchChildren();  // Récupérer les enfants lors du chargement du profil
   }, [user._id]);
 
   useEffect(() => {
     if (!inputValue) {
-      setInputValue(user.firstname || ''); 
+      setInputValue(user.firstname || '');
     }
   }, [user]);
 
   // Ouvre la modale pour sélectionner un type de garde
   const openModalTypes = () => {
-    fetchTypes(); 
-    setModalTypesVisible(true); 
+    fetchTypes();
+    setModalTypesVisible(true);
   };
 
   const closeModalTypes = () => setModalTypesVisible(false);
@@ -104,14 +100,14 @@ const ProfileScreen = () => {
     if (inputValue !== '') {
       const userId = user._id;  // Utilisation de l'ID de l'utilisateur
       let updatedData = {};
-  
+
       // Si le champ est 'children', envoyer un tableau avec l'enfant ajouté
       if (field === 'children') {
-        updatedData.children = [ ...user.children, ...JSON.parse(inputValue) ];  // Ajoute l'enfant envoyé
+        updatedData.children = [...user.children, ...JSON.parse(inputValue)];  // Ajoute l'enfant envoyé
       } else {
         updatedData = { [field]: inputValue };  // Sinon, traiter comme un champ classique
       }
-  
+
       try {
         const response = await fetch(`https://bubble-backend-peach.vercel.app/users/updateProfile/${userId}`, {
           method: 'PUT',
@@ -120,29 +116,29 @@ const ProfileScreen = () => {
           },
           body: JSON.stringify(updatedData),
         });
-  
+
         const result = await response.json();
-  
+
         if (result.result) {
           console.log('Mise à jour réussie', result.updatedUser);
           dispatch(updateUser(result.updatedUser));  // Mettre à jour le store avec les nouvelles données
         } else {
           setErrorMessage(result.message);  // Afficher une erreur si la mise à jour échoue
         }
-  
+
       } catch (error) {
         console.error('Erreur lors de la mise à jour:', error);
         setErrorMessage('Une erreur est survenue lors de la mise à jour.');
       }
-  
+
       setEditingField(null);  // Fermer le champ d'édition après la mise à jour
     }
   };
 
-  
+
   const handleRemoveChild = async (childId) => {
     const userId = user._id;
-  
+
     try {
       const response = await fetch(`https://bubble-backend-peach.vercel.app/users/removeChild/${userId}`, {
         method: 'PUT',
@@ -151,7 +147,7 @@ const ProfileScreen = () => {
         },
         body: JSON.stringify({ childId }),
       });
-  
+
       const result = await response.json();
       if (result.result) {
         console.log('Enfant supprimé avec succès');
@@ -166,7 +162,7 @@ const ProfileScreen = () => {
 
   const handleAddChild = async () => {
     const userId = user._id;
-  
+
     try {
       const response = await fetch(`https://bubble-backend-peach.vercel.app/users/addChild/${userId}`, {
         method: 'PUT',
@@ -175,7 +171,7 @@ const ProfileScreen = () => {
         },
         body: JSON.stringify({ newChild: newChild }),  // Envoyer les données de l'enfant
       });
-  
+
       const result = await response.json();
       if (result.result) {
         console.log('Enfant ajouté avec succès');
@@ -187,8 +183,8 @@ const ProfileScreen = () => {
       console.error('Erreur de requête:', error);
     }
   };
-  
-  
+
+
 
   const handleLogout = () => {
     dispatch(logout());
@@ -226,17 +222,17 @@ const ProfileScreen = () => {
   };
 
 
-  
+
 
   const closeModal = () => {
-    setModalChildrenVisible(false); 
-    setModalTypesVisible(false); 
+    setModalChildrenVisible(false);
+    setModalTypesVisible(false);
   };
 
- 
-  
 
-  
+
+
+
 
   return (
     <ImageBackground source={require('../assets/background.png')} style={styles.background}>
@@ -246,7 +242,7 @@ const ProfileScreen = () => {
           <FontAwesome name="power-off" size={30} color="#ffffff" />
         </TouchableOpacity>
       </View>
-  
+
       <ScrollView
         style={styles.scrollContainer}
         contentContainerStyle={{ paddingBottom: 80 }}
@@ -288,11 +284,9 @@ const ProfileScreen = () => {
                 ) : (
                   <View style={styles.fieldValueContainer}>
                     {Array.isArray(user[field]) ? (
-                      user[field].map((child, index) => (
-                        <Text key={`${field}-${index}`} style={styles.fieldValue}>
-                          {child.firstname} {child.namechild} (Né(e) le : {child.birthdate})
-                        </Text>
-                      ))
+                      <Text style={styles.fieldValue}>
+                        {user[field].map(child => child.firstnamechild).join(', ')}
+                      </Text>
                     ) : (
                       <Text style={styles.fieldValue}>{typeof user[field] === 'object' ? JSON.stringify(user[field]) : user[field]}</Text>
                     )}
@@ -318,281 +312,278 @@ const ProfileScreen = () => {
             </View>
           ))}
       </ScrollView>
-      
+
 
       {/* Modal de types de garde */}
       <Modal
-  animationType="slide"
-  transparent={true}
-  visible={modalTypesVisible}  
-  onRequestClose={closeModalTypes}
->
-  <View style={{
-    flex: 1,
-    justifyContent: 'center',  // Centre verticalement
-    alignItems: 'center',      // Centre horizontalement
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  }}>
-    <View style={{
-      width: '90%',
-      backgroundColor: '#fff',
-      borderRadius: 10,
-      padding: 20,
-      alignSelf: 'center'      // Centre horizontalement
-    }}>
-      <Text style={{
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginBottom: 10,
-        textAlign: 'center',
-      }}>Sélectionner un type de garde</Text>
-      
-      <ScrollView style={{ marginBottom: 20 }}>
-        {typesOfCare.length > 0 ? (
-          typesOfCare.map((type, index) => (
-            <View key={index} style={{
+        animationType="slide"
+        transparent={true}
+        visible={modalTypesVisible}
+        onRequestClose={closeModalTypes}
+      >
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',  // Centre verticalement
+          alignItems: 'center',      // Centre horizontalement
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        }}>
+          <View style={{
+            width: '90%',
+            backgroundColor: '#fff',
+            borderRadius: 10,
+            padding: 20,
+            alignSelf: 'center'      // Centre horizontalement
+          }}>
+            <Text style={{
+              fontSize: 20,
+              fontWeight: 'bold',
+              marginBottom: 10,
+              textAlign: 'center',
+            }}>Sélectionner un type de garde</Text>
+
+            <ScrollView style={{ marginBottom: 20 }}>
+              {typesOfCare.length > 0 ? (
+                typesOfCare.map((type, index) => (
+                  <View key={index} style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: 15,
+                  }}>
+                    <Text style={{
+                      fontSize: 16,
+                      marginRight: 10,
+                      flex: 1,  // Pour que le texte prenne tout l'espace à gauche
+                    }}>{type}</Text>
+
+                    <TouchableOpacity
+                      style={{
+                        width: 30,
+                        height: 30,
+                        backgroundColor: '#fff',
+                        borderRadius: 5,
+                        borderColor: '#ccc',
+                        borderWidth: 1,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}
+                      onPress={() => handleCheckboxChange(type)}
+                    >
+                      <FontAwesome
+                        name={selectedTypes.includes(type) ? 'check' : 'square-o'}
+                        size={20}
+                        color={selectedTypes.includes(type) ? '#EABBFF' : '#ccc'}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                ))
+              ) : (
+                <Text>Aucun type de garde disponible</Text>
+              )}
+            </ScrollView>
+
+            <View style={{
               flexDirection: 'row',
-              alignItems: 'center',
               justifyContent: 'space-between',
-              marginBottom: 15,
+              alignItems: 'center',
             }}>
-              <Text style={{
-                fontSize: 16,
-                marginRight: 10,
-                flex: 1,  // Pour que le texte prenne tout l'espace à gauche
-              }}>{type}</Text>
-              
               <TouchableOpacity
                 style={{
-                  width: 30,
-                  height: 30,
-                  backgroundColor: '#fff',
+                  backgroundColor: '#98B9F2',
+                  paddingVertical: 10,
+                  paddingHorizontal: 20,
                   borderRadius: 5,
-                  borderColor: '#ccc',
-                  borderWidth: 1,
-                  justifyContent: 'center',
+                  flex: 1,
+                  marginRight: 10,
                   alignItems: 'center',
                 }}
-                onPress={() => handleCheckboxChange(type)}
+                onPress={closeModal}
               >
-                <FontAwesome
-                  name={selectedTypes.includes(type) ? 'check' : 'square-o'}
-                  size={20}
-                  color={selectedTypes.includes(type) ? '#EABBFF' : '#ccc'}
-                />
+                <Text style={{ color: '#fff', fontSize: 16 }}>Fermer</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={{
+                  backgroundColor: '#EABBFF',
+                  paddingVertical: 10,
+                  paddingHorizontal: 20,
+                  borderRadius: 5,
+                  flex: 1,
+                  alignItems: 'center',
+                }}
+                onPress={handleSaveType}
+              >
+                <Text style={{ color: '#fff', fontSize: 16 }}>Confirmer</Text>
               </TouchableOpacity>
             </View>
-          ))
-        ) : (
-          <Text>Aucun type de garde disponible</Text>
-        )}
-      </ScrollView>
-
-      <View style={{
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}>
-        <TouchableOpacity
-          style={{
-            backgroundColor: '#98B9F2',
-            paddingVertical: 10,
-            paddingHorizontal: 20,
-            borderRadius: 5,
-            flex: 1,
-            marginRight: 10,
-            alignItems: 'center',
-          }}
-          onPress={closeModal}
-        >
-          <Text style={{ color: '#fff', fontSize: 16 }}>Fermer</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={{
-            backgroundColor: '#EABBFF',
-            paddingVertical: 10,
-            paddingHorizontal: 20,
-            borderRadius: 5,
-            flex: 1,
-            alignItems: 'center',
-          }}
-          onPress={handleSaveType}
-        >
-          <Text style={{ color: '#fff', fontSize: 16 }}>Confirmer</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  </View>
-</Modal>
+          </View>
+        </View>
+      </Modal>
 
 
 
 
       {/* Modal des enfants */}
-      
+
       <Modal
-  animationType="slide"
-  transparent={true}
-  visible={modalChildrenVisible}
-  onRequestClose={handleCloseChildrenModal}
->
-  <View style={{
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  }}>
-    <View style={{
-      width: '90%',
-      backgroundColor: '#fff',
-      borderRadius: 10,
-      padding: 20,
-    }}>
-      <Text style={{
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginBottom: 10,
-        textAlign: 'center',
-      }}>Sélectionner des enfants</Text>
+        animationType="slide"
+        transparent={true}
+        visible={modalChildrenVisible}
+        onRequestClose={handleCloseChildrenModal}
+      >
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        }}>
+          <View style={{
+            width: '90%',
+            backgroundColor: '#fff',
+            borderRadius: 10,
+            padding: 20,
+          }}>
+            <Text style={{
+              fontSize: 20,
+              fontWeight: 'bold',
+              marginBottom: 10,
+              textAlign: 'center',
+            }}>Sélectionner des enfants</Text>
 
-      {/* Formulaire pour ajouter un enfant */}
-      <View style={{ marginBottom: 20 }}>
-        <TextInput
-          style={{
-            height: 40,
-            borderColor: '#ccc',
-            borderWidth: 1,
-            borderRadius: 5,
-            marginBottom: 10,
-            paddingLeft: 10,
-          }}
-          placeholder={
-            user.children && user.children.length > 0
-              ? user.children.map(child => child.firstnamechild).join(', ') 
-              : 'Aucun enfant ajouté'
-          }
-          value={newChild.firstname}
-          onChangeText={(text) => setNewChild({ ...newChild, firstname: text })}
-        />
-        <TextInput
-          style={{
-            height: 40,
-            borderColor: '#ccc',
-            borderWidth: 1,
-            borderRadius: 5,
-            marginBottom: 10,
-            paddingLeft: 10,
-          }}
-          placeholder="Nom"
-          value={newChild.namechild}
-          onChangeText={(text) => setNewChild({ ...newChild, namechild: text })}
-        />
-        <TextInput
-          style={{
-            height: 40,
-            borderColor: '#ccc',
-            borderWidth: 1,
-            borderRadius: 5,
-            marginBottom: 10,
-            paddingLeft: 10,
-          }}
-          placeholder="Date de naissance"
-          value={newChild.birthdate}
-          onChangeText={(text) => setNewChild({ ...newChild, birthdate: text })}
-        />
+            {/* Formulaire pour ajouter un enfant */}
+            <View style={{ marginBottom: 20 }}>
+              <TextInput
+                style={{
+                  height: 40,
+                  borderColor: '#ccc',
+                  borderWidth: 1,
+                  borderRadius: 5,
+                  marginBottom: 10,
+                  paddingLeft: 10,
+                }}
+                placeholder="Prénom"
+                value={newChild.firstnamechild}
+                onChangeText={(text) => setNewChild({ ...newChild, firstnamechild: text })}
+              />
 
-        <TouchableOpacity
-          style={{
-            backgroundColor: '#98B9F2',
-            paddingVertical: 10,
-            paddingHorizontal: 20,
-            borderRadius: 5,
-            marginBottom: 20,
-            alignItems: 'center',
-          }}
-          onPress={handleAddChild} // Ajouter un enfant
-        >
-          <Text style={{ color: '#fff', fontSize: 16 }}>Ajouter un enfant</Text>
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView style={{ marginBottom: 20 }}>
-        {user.children && user.children.length > 0 ? (
-          user.children.map((child, index) => (
-            <View key={index} style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: 15,
-            }}>
-              <Text style={{
-                fontSize: 16,
-                marginRight: 10,
-                flex: 1,
-              }}>
-                {child.firstnamechild} {child.namechild} (Né(e) le : {child.birthdate})
-              </Text>
+              <TextInput
+                style={{
+                  height: 40,
+                  borderColor: '#ccc',
+                  borderWidth: 1,
+                  borderRadius: 5,
+                  marginBottom: 10,
+                  paddingLeft: 10,
+                }}
+                placeholder="Nom"
+                value={newChild.namechild}
+                onChangeText={(text) => setNewChild({ ...newChild, namechild: text })}
+              />
+              <TextInput
+                style={{
+                  height: 40,
+                  borderColor: '#ccc',
+                  borderWidth: 1,
+                  borderRadius: 5,
+                  marginBottom: 10,
+                  paddingLeft: 10,
+                }}
+                placeholder="Date de naissance"
+                value={newChild.birthdate}
+                onChangeText={(text) => setNewChild({ ...newChild, birthdate: text })}
+              />
 
               <TouchableOpacity
                 style={{
-                  width: 30,
-                  height: 30,
-                  backgroundColor: '#fff',
+                  backgroundColor: '#98B9F2',
+                  paddingVertical: 10,
+                  paddingHorizontal: 20,
                   borderRadius: 5,
-                  borderColor: '#ccc',
-                  borderWidth: 1,
-                  justifyContent: 'center',
+                  marginBottom: 20,
                   alignItems: 'center',
                 }}
-                onPress={() => handleRemoveChild(child._id)} // Supprimer un enfant
+                onPress={handleAddChild} // Ajouter un enfant
               >
-                <FontAwesome name="trash" size={20} color="#EABBFF" />
+                <Text style={{ color: '#fff', fontSize: 16 }}>Ajouter un enfant</Text>
               </TouchableOpacity>
             </View>
-          ))
-        ) : (
-          <Text>Aucun enfant disponible</Text>
-        )}
-      </ScrollView>
 
-      <View style={{
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}>
-        <TouchableOpacity
-          style={{
-            backgroundColor: '#98B9F2',
-            paddingVertical: 10,
-            paddingHorizontal: 20,
-            borderRadius: 5,
-            flex: 1,
-            marginRight: 10,
-            alignItems: 'center',
-          }}
-          onPress={handleCloseChildrenModal}
-        >
-          <Text style={{ color: '#fff', fontSize: 16 }}>Fermer</Text>
-        </TouchableOpacity>
+            <ScrollView style={{ marginBottom: 20 }}>
+              {user.children && user.children.length > 0 ? (
+                user.children.map((child, index) => (
+                  <View key={index} style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: 15,
+                  }}>
+                    <Text style={{
+                      fontSize: 16,
+                      marginRight: 10,
+                      flex: 1,
+                    }}>
+                      {child.firstnamechild}  (Né(e) le : {child.birthdate})
+                    </Text>
 
-        <TouchableOpacity
-          style={{
-            backgroundColor: '#EABBFF',
-            paddingVertical: 10,
-            paddingHorizontal: 20,
-            borderRadius: 5,
-            flex: 1,
-            alignItems: 'center',
-          }}
-          onPress={handleSaveChildren} // Sauvegarder les modifications
-        >
-          <Text style={{ color: '#fff', fontSize: 16 }}>Confirmer</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  </View>
-</Modal>
+                    <TouchableOpacity
+                      style={{
+                        width: 30,
+                        height: 30,
+                        backgroundColor: '#fff',
+                        borderRadius: 5,
+                        borderColor: '#ccc',
+                        borderWidth: 1,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}
+                      onPress={() => handleRemoveChild(child._id)} // Supprimer un enfant
+                    >
+                      <FontAwesome name="trash" size={20} color="#EABBFF" />
+                    </TouchableOpacity>
+                  </View>
+                ))
+              ) : (
+                <Text>Aucun enfant disponible</Text>
+              )}
+            </ScrollView>
+
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: '#98B9F2',
+                  paddingVertical: 10,
+                  paddingHorizontal: 20,
+                  borderRadius: 5,
+                  flex: 1,
+                  marginRight: 10,
+                  alignItems: 'center',
+                }}
+                onPress={handleCloseChildrenModal}
+              >
+                <Text style={{ color: '#fff', fontSize: 16 }}>Confirmer</Text>
+              </TouchableOpacity>
+
+              {/* <TouchableOpacity
+                style={{
+                  backgroundColor: '#EABBFF',
+                  paddingVertical: 10,
+                  paddingHorizontal: 20,
+                  borderRadius: 5,
+                  flex: 1,
+                  alignItems: 'center',
+                }}
+                onPress={handleSaveChildren} // Sauvegarder les modifications
+              >
+                <Text style={{ color: '#fff', fontSize: 16 }}>Confirmer</Text>
+              </TouchableOpacity> */}
+            </View>
+          </View>
+        </View>
+      </Modal>
 
 
 
@@ -603,44 +594,44 @@ const ProfileScreen = () => {
 
 const styles = StyleSheet.create({
   background: { flex: 1, resizeMode: 'cover' },
-  titleContainer: { 
+  titleContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 0,
     marginTop: 50,
+    marginHorizontal: 15, // Ajoute une marge horizontale
+  },
+  title: { fontSize: 30, color: '#fff', marginBottom: 10, fontWeight: 600, },
+  container: {
+    padding: 20,
     marginHorizontal: 10, // Ajoute une marge horizontale
   },
-  title: { fontSize: 24, color: '#fff' },
-  container: { 
-    padding: 20, 
-    marginHorizontal: 10, // Ajoute une marge horizontale
-  },
-  fieldContainer: { marginBottom: 20 },
-  fieldLabel: { fontSize: 16, color: '#fff' },
-  fieldBox: { 
-    backgroundColor: '#fff', 
-    padding: 10, 
-    borderRadius: 8, 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
+  fieldContainer: { marginBottom: 20, },
+  fieldLabel: { fontSize: 16, color: '#fff', marginLeft: 15, marginVertical: 5, },
+  fieldBox: {
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginHorizontal: 10, // Ajoute une marge horizontale
   },
-  fieldValueContainer: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'space-between',
+  fieldValueContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    // justifyContent: 'space-arround',
     width: '100%',
   },
   fieldValue: { fontSize: 14, color: '#000' },
   input: { flex: 1, height: 40, fontSize: 14, color: '#000' },
   saveIcon: { marginLeft: 10 },
   errorMessage: { color: 'red', fontSize: 12 },
-  editIcon: { 
-    marginLeft: 10, 
-    position: 'absolute',  
-    right: 10, 
+  editIcon: {
+    marginLeft: 10,
+    position: 'absolute',
+    right: 10,
     alignSelf: 'flex-end',
   },
   logoutButtonContainer: {
@@ -653,58 +644,57 @@ const styles = StyleSheet.create({
   },
   logoutButton: { backgroundColor: '#f44336', padding: 15, borderRadius: 8 },
   logoutButtonText: { color: '#fff', fontSize: 18 },
-  powerIcon: { 
-    position: 'absolute', 
-    top: 10, 
-    right: 10 
+  powerIcon: {
+    position: 'absolute',
+    top: 10,
+    right: 10
   },
-  modalOverlay: { 
-    flex: 1, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', 
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     marginHorizontal: 10, // Ajoute une marge horizontale
   },
-  modalContainer: { 
-    backgroundColor: '#fff', 
-    padding: 20, 
-    borderRadius: 8, 
-    width: '80%', 
+  modalContainer: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 8,
+    width: '80%',
     marginHorizontal: 10, // Ajoute une marge horizontale
   },
   modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
-  checkboxContainer: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    marginBottom: 10, 
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
     marginHorizontal: 10, // Ajoute une marge horizontale
   },
   checkboxText: { fontSize: 16, marginRight: 10 },
   checkbox: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-  saveButton: { 
-    backgroundColor: '#28a745', 
-    padding: 15, 
-    borderRadius: 8, 
-    marginTop: 10, 
+  saveButton: {
+    backgroundColor: '#28a745',
+    padding: 15,
+    borderRadius: 8,
+    marginTop: 10,
     marginHorizontal: 10, // Ajoute une marge horizontale
   },
   saveButtonText: { color: '#fff', fontSize: 18, textAlign: 'center' },
-  cancelButton: { 
-    backgroundColor: '#bbb', 
-    padding: 15, 
-    borderRadius: 8, 
-    marginTop: 10, 
+  cancelButton: {
+    backgroundColor: '#bbb',
+    padding: 15,
+    borderRadius: 8,
+    marginTop: 10,
     marginHorizontal: 10, // Ajoute une marge horizontale
   },
   cancelButtonText: { color: '#fff', fontSize: 18, textAlign: 'center' },
   typeEditIcon: {
-    position: 'absolute', 
-    right: -235, 
-    alignSelf: 'flex-end',
-    marginHorizontal: 10, // Ajoute une marge horizontale
+    position: 'absolute',
+    left: 314,
+    // right: -300,
+    // alignSelf: 'flex-end',
+    // marginHorizontal: 10, // Ajoute une marge horizontale
   },
 });
-
-
 
 export default ProfileScreen;
